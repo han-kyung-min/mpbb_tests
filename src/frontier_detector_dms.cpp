@@ -9,7 +9,6 @@
 
 #include "frontier_detector_dms.hpp"
 
-
 namespace autoexplorer
 {
 
@@ -19,7 +18,8 @@ mpo_gph(NULL),
 mp_cost_translation_table(NULL)
 {
 	// gridmap generated from octomap might be downsampled !!
-	m_str_debugpath = string("/home/hankm/results/autoexploration");
+    string homedir = getenv("HOME");
+	m_str_debugpath = string(homedir+"/results/autoexploration");
 
 	m_noccupancy_thr = 40;
 	m_fRobotRadius = 0.3f;
