@@ -15,9 +15,11 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <cassert>
 
 #define BUF_MAX 1024
 #define MAX_CPU 128
+#define NUMTOTCPU (16)
 
 namespace autoexplorer
 {
@@ -30,6 +32,7 @@ public:
 	virtual ~ThreadUtilityMeas();
 	int RequestFinish();
 
+	inline void set_numtotcpu( uint32_t ncpu ){ mn_numtotcpus = ncpu; }
 	int read_fields(FILE* fp, uint64_t* pufileds );
 	int read_procstat_old( ) ;
 	int read_procstat_cur( ) ;
@@ -39,6 +42,7 @@ public:
 protected:
 	bool mb_finishrequested;
 
+	uint32_t mn_numtotcpus ;
 	int mn_numcpus; // num cpus
 	FILE *m_fp;
 

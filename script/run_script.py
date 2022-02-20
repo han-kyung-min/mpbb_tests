@@ -35,7 +35,7 @@ def main(argv):
             outfiletxt = '/home/hankm/results/autoexploration/mpbb/planning_time_{}_{}.txt'.format(num_threads,roundidx)
             shutil.copy('/home/hankm/results/autoexploration/planning_time.txt', outfiletxt)
 
-            cpuprofiletxt = '/home/hankm/results/autoexploration/cpu_utility/threadutility_{}.txt'.format(num_threads)
+            cpuprofiletxt = '/home/hankm/results/autoexploration/cpu_utility/threadutility_{}_{}.txt'.format(num_threads, roundidx)
             shutil.copy('/home/hankm/results/autoexploration/threadutility.txt',cpuprofiletxt)
             time.sleep(1)
     

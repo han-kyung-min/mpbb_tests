@@ -1929,6 +1929,8 @@ thread
 -
 mutex
 -
+cassert
+-
 
 ../include/visualization_msgs/Marker.h
 string

@@ -146,9 +146,19 @@ int ThreadUtilityMeas::meas_cpu_percent( int nthreads, int nfpts )
 	//	        diff_idle = current_idle - previous_idle
 	//	        cpu_usage_percentage = ( diff_total - diff_idle )/ diff_total * 100
 
+	assert(mn_numtotcpus > 0);
+
 	float elapsed_time_mm = (float)(m_time - m_time_old) / CLOCKS_PER_SEC * 1000;
-	m_ofs << nthreads << " " << nfpts << " \t"; //<< elapsed_time_mm << ": \t";
-	for(int idx=0; idx < mn_numcpus; idx++)
+	m_ofs << nthreads << " " << nfpts << " \n"; //<< elapsed_time_mm << ": \t";
+
+	double fthread_percent = (double)nthreads/ ( (double)mn_numtotcpus ) ;
+	// cpu 0
+	mpu_del_total[0] 	= mpu_total[0] - mpu_total_old[0] ;
+	mpu_del_idle[0]	= mpu_idle[0]  - mpu_idle_old[0] ;
+	mpd_cpu_usage_percent[0] =((double)(mpu_del_total[0] - mpu_del_idle[0]) / (double) mpu_del_total[0]) * 100;
+	m_ofs << mpd_cpu_usage_percent[0] << " " << mpd_cpu_usage_percent[0] / fthread_percent << " \n";
+
+	for(int idx=1; idx < mn_numtotcpus+1; idx++)
 	{
 		mpu_del_total[idx] 	= mpu_total[idx] - mpu_total_old[idx] ;
 		mpu_del_idle[idx]	= mpu_idle[idx]  - mpu_idle_old[idx] ;

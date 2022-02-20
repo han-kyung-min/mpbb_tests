@@ -616,7 +616,7 @@ printf("\n\n\n ******************************************************** \n");
 printf("***                          begin GP here ******************** \n");
 printf("*************************************************************** \n\n\n");
 
-int nrepeat = 1000;
+int nrepeat = 2000;
 //std::clock_t GPstartTime = clock();
 
 auto begin_time = std::chrono::high_resolution_clock::now();
@@ -634,7 +634,7 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 	mpo_gph = new GlobalPlanningHandler();
 	numthreads = mn_numthreads; //omp_get_num_threads() ;
 
-	#pragma omp for schedule(dynamic)
+	#pragma omp for // schedule(dynamic)
 	for (size_t idx=0; idx < m_points.points.size(); idx++)
 	{
 		int tid = omp_get_thread_num() ;
@@ -678,6 +678,11 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 
 } // end of repeatidx
 
+mp_threadutil->read_procstat_cur();
+mp_threadutil->set_numtotcpu( omp_get_num_procs() );
+mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
+
+
 std::vector<geometry_msgs::PoseStamped> best_plan ;
 size_t best_len = 100000000 ;
 size_t best_idx = 0;
@@ -694,18 +699,15 @@ for(size_t idx=0; idx < gplansizes.size(); idx++ )
 
 //std::clock_t GPEndTime = clock();
 
+
 auto end_time = std::chrono::high_resolution_clock::now();
 auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - begin_time);
 
 float avg_gp_time_mm = elapsed.count() * 1e-6 /((float)nrepeat) ;
-printf("numthreads: <%d>  gp_time : <%f mm>\n", mn_numthreads, avg_gp_time_mm);
+printf("numthreads: <%d / %d>  avg_gp_time : <%f mm>\n", mn_numthreads, omp_get_num_procs(), avg_gp_time_mm);
 m_ofs_time << numthreads << " " << m_points.points.size() << " " << avg_gp_time_mm << endl;
 m_ofs_time << endl;
-
 m_ofs_time.close();
-
-mp_threadutil->read_procstat_cur();
-mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
 
 
 p = m_points.points[best_idx];  // just for now... we need to fix it later
