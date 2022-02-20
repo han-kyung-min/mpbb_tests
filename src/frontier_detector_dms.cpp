@@ -407,11 +407,11 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	if( globalcostmap.info.width > 0 )
 	{
 		//frontiers = eliminateSupriousFrontiers( m_globalcostmap, frontiers_cand, m_nROISize) ;
-		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
-		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
+//		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
+//		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
-			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
+			voFrontierCands[idx].SetFrontierFlag( 0, 0 );
 
 //		set<pointset, pointset> unreachable_frontiers;
 //		{
@@ -622,6 +622,7 @@ int nrepeat = 2000;
 auto begin_time = std::chrono::high_resolution_clock::now();
 
 //vector< float	 > endpotentials( numthreads );
+mn_numthreads = 1;
 omp_set_num_threads(mn_numthreads);
 
 mp_threadutil->read_procstat_old();
