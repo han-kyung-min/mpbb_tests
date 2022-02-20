@@ -28,15 +28,17 @@ def main(argv):
             start_time = time.time()
             elapsed_time = time.time() - start_time
             
+            homedir = os.getenv("HOME")
+            
             global exploration_status
 
-            os.system('/home/hankm/binary_ws/mpbb_tests/bin/mpbb_run {}'.format(num_threads))
+            os.system('{}/binary_ws/mpbb_tests/bin/mpbb_run {}'.format(homedir,num_threads))
 
-            outfiletxt = '/home/hankm/results/autoexploration/mpbb/planning_time_{}_{}.txt'.format(num_threads,roundidx)
-            shutil.copy('/home/hankm/results/autoexploration/planning_time.txt', outfiletxt)
+            outfiletxt = '{}/results/autoexploration/mpbb/planning_time_{}_{}.txt'.format(homedir,num_threads,roundidx)
+            shutil.copy('{}/results/autoexploration/planning_time.txt',homedir, outfiletxt)
 
-            cpuprofiletxt = '/home/hankm/results/autoexploration/cpu_utility/threadutility_{}_{}.txt'.format(num_threads, roundidx)
-            shutil.copy('/home/hankm/results/autoexploration/threadutility.txt',cpuprofiletxt)
+            cpuprofiletxt = '{}/results/autoexploration/cpu_utility/threadutility_{}_{}.txt'.format(homedir,num_threads, roundidx)
+            shutil.copy('{}/results/autoexploration/threadutility.txt'.format(homedir),cpuprofiletxt)
             time.sleep(1)
     
 if __name__ == '__main__':
