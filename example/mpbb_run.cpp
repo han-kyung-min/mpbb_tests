@@ -30,8 +30,9 @@ int main(int argc, char** argv)
     // load gridmap and costmap
     //front_detector_dms.SetNumThreads(numthreads);
 
-    string costmapfile = "/home/hankm/results/autoexploration/tmp/cm000.txt" ;
-    string gridmapfile = "/home/hankm/results/autoexploration/tmp/gm000.txt" ;
+    string homedir = getenv("HOME");
+    string costmapfile = homedir+"/results/autoexploration/tmp/cm000.txt" ;
+    string gridmapfile = homedir+"/results/autoexploration/tmp/gm000.txt" ;
     front_detector_dms.loadGridMap(gridmapfile);
     front_detector_dms.loadCostMap(costmapfile);
     front_detector_dms.processMap() ;
