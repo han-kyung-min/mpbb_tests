@@ -17,11 +17,16 @@ import shutil
 
 def main(argv):
     
+    if len(sys.argv) != 3:
+        print "usage: {} <num_rounds> <num_threads>".format(argv[0])
+        return -1
+    
     global exploration_status
     num_rounds  = int(argv[1])
+    num_threads = int(argv[2])
 
     #num_thread_dev=[1,2,4,6,8,10,12,14,16]
-    for num_threads in range(1,17):#num_thread_dev:
+    for num_threads in range(1,num_threads+1):#num_thread_dev:
     
         for roundidx in range(1,num_rounds+1):
             
@@ -35,7 +40,7 @@ def main(argv):
             os.system('{}/binary_ws/mpbb_tests/bin/mpbb_run {}'.format(homedir,num_threads))
 
             outfiletxt = '{}/results/autoexploration/mpbb/planning_time_{}_{}.txt'.format(homedir,num_threads,roundidx)
-            shutil.copy('{}/results/autoexploration/planning_time.txt',homedir, outfiletxt)
+            shutil.copy('{}/results/autoexploration/planning_time.txt'.format(homedir), outfiletxt)
 
             cpuprofiletxt = '{}/results/autoexploration/cpu_utility/threadutility_{}_{}.txt'.format(homedir,num_threads, roundidx)
             shutil.copy('{}/results/autoexploration/threadutility.txt'.format(homedir),cpuprofiletxt)
