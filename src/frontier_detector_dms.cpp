@@ -655,23 +655,20 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 //ros::WallTime mpStartTime = ros::WallTime::now();
 
 		float fendpot;
-		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+		//bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+		bool bplansuccess = mpo_gph->makePlan(start, goal, plan);
 
 //printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
 //										  bplansuccess, tid, idx,
 //										  start.pose.position.x, start.pose.position.y,
 //										  goal.pose.position.x, goal.pose.position.y, fendpot);
-
-
-//ros::WallTime mpEndTime = ros::WallTime::now();
 		gplansizes[idx] = plan.size();
 
-//ros::WallTime mpAtomicStartTime = ros::WallTime::now();
-		if( fendpot < fupperbound )
-		{
-			#pragma omp atomic write
-				fupperbound = fendpot; // set new bound;
-		}
+//		if( fendpot < fupperbound )
+//		{
+//			#pragma omp atomic write
+//				fupperbound = fendpot; // set new bound;
+//		}
 	}
 	delete mpo_gph;
 }
