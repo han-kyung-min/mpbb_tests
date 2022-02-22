@@ -32,7 +32,7 @@ mp_cost_translation_table(NULL)
 	m_nlethal_cost_thr = 80;
 	float fgridmap_conf_thr = 0.6 ;
 	float fcostmap_conf_thr = 0.4;
-	m_nNumPyrDownSample = 1;
+	m_nNumPyrDownSample = 0;
 
 	m_nScale = pow(2, m_nNumPyrDownSample) ;
 	m_frontiers_region_thr = 10 / m_nScale ;
@@ -246,55 +246,82 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 //cv::imshow("tmp", img_);
 //cv::waitKey(0);
 
-	if( m_nNumPyrDownSample > 0)
-	{
-		// be careful here... using pyrDown() interpolates occ and free, making the boarder area (0 and 127) to be 127/2 !!
-		// 127 reprents an occupied cell !!!
-		//downSampleMap(img);
-		for(int iter=0; iter < m_nNumPyrDownSample; iter++ )
-		{
-			int nrows = img_.rows; //% 2 == 0 ? img.rows : img.rows + 1 ;
-			int ncols = img_.cols; // % 2 == 0 ? img.cols : img.cols + 1 ;
-			pyrDown(img_, img_, cv::Size( ncols/2, nrows/2 ) );
-		}
-	}
-	clusterToThreeLabels( img_ );
+//	if( m_nNumPyrDownSample > 0)
+//	{
+//		// be careful here... using pyrDown() interpolates occ and free, making the boarder area (0 and 127) to be 127/2 !!
+//		// 127 reprents an occupied cell !!!
+//		//downSampleMap(img);
+//		for(int iter=0; iter < m_nNumPyrDownSample; iter++ )
+//		{
+//			int nrows = img_.rows; //% 2 == 0 ? img.rows : img.rows + 1 ;
+//			int ncols = img_.cols; // % 2 == 0 ? img.cols : img.cols + 1 ;
+//			pyrDown(img_, img_, cv::Size( ncols/2, nrows/2 ) );
+//		}
+//	}
+//	clusterToThreeLabels( img_ );
 
 // We need to zero-pad around img b/c m_gridmap dynamically increases
 	//uint8_t ukn = static_cast<uchar>(ffp::MapStatus::UNKNOWN) ;
-	cv::Mat img_padded = cv::Mat( img_.rows + ROI_OFFSET*2, img_.cols + ROI_OFFSET*2, CV_8U, cv::Scalar(ffp::MapStatus::UNKNOWN) ) ;
-	cv::Rect myroi( ROI_OFFSET, ROI_OFFSET, img_.cols, img_.rows );
-	cv::Mat img_roi = img_padded(myroi) ;
-	img_.copyTo(img_roi) ;
 
-	ffp::FrontPropagation oFP(img_padded); // image uchar
-	oFP.update(img_padded, cv::Point(0,0));
-	oFP.extractFrontierRegion( img_padded ) ;
+//	cv::Mat img_padded = cv::Mat( img_.rows + ROI_OFFSET*2, img_.cols + ROI_OFFSET*2, CV_8U, cv::Scalar(ffp::MapStatus::UNKNOWN) ) ;
+//	cv::Rect myroi( ROI_OFFSET, ROI_OFFSET, img_.cols, img_.rows );
+//	cv::Mat img_roi = img_padded(myroi) ;
+//	img_.copyTo(img_roi) ;
+//
+//	ffp::FrontPropagation oFP(img_padded); // image uchar
+//	oFP.update(img_padded, cv::Point(0,0));
+//	oFP.extractFrontierRegion( img_padded ) ;
+//
+//	cv::Mat img_frontiers = oFP.GetFrontierContour() ;
 
-	cv::Mat img_frontiers = oFP.GetFrontierContour() ;
+/////////////////////////
+// Locate free regions
+//////////////////////////
+	// img_ // free (0), unk (127), obs (255)
+	cv::Mat img_obs, img_free ;
+	cv::threshold(img_, img_free, 50, 255, cv::THRESH_BINARY_INV)  ;  // unknown
+
+	cv::Mat nonzeroloc;
+	cv::findNonZero(img_free, nonzeroloc);
+
+//for(int freeidx=0; freeidx <nonzeroloc.total() ; freeidx++)
+//{
+//	cout << freeidx << " " << nonzeroloc.at<cv::Point>(freeidx).x << " " << nonzeroloc.at<cv::Point>(freeidx).y << endl;
+//}
+
+	cv::Mat dst_;
+	cvtColor(img_, dst_, cv::COLOR_GRAY2BGR);
+
+	int numtotfpts = nonzeroloc.total() ;
+	srand( (uint32_t)time(NULL) );
+
+	vector<uint32_t> vrandomidx;
+	if( numtotfpts < nonzeroloc.total() )
+	{
+		for(int x=0; x < numtotfpts; x++)
+		{
+			uint32_t myidx  = 1 + ( rand() % nonzeroloc.total() ) ;
+			vrandomidx.push_back(myidx) ;
+
+			dst_.at<cv::Vec3b>( nonzeroloc.at<cv::Point>(myidx).y, nonzeroloc.at<cv::Point>(myidx).x ) = cv::Vec3b(0,255,0);
+		}
+	}
+	else
+	{
+		for(uint32_t i =0 ; i < nonzeroloc.total(); i++)
+			vrandomidx.push_back(i) ;
+	}
+
+//cv::namedWindow("tmp");
+//cv::imshow("tmp", dst_);
+//cv::waitKey(0);
 
 	cv::Mat dst, img_labeled;
-	cvtColor(img_frontiers, dst, cv::COLOR_GRAY2BGR);
-	cvtColor(img_padded, img_labeled, cv::COLOR_GRAY2BGR);
-// locate the most closest labeled points w.r.t the centroid pts
+//	cvtColor(img_frontiers, dst, cv::COLOR_GRAY2BGR);
+//	cvtColor(img_padded, img_labeled, cv::COLOR_GRAY2BGR);
+//// locate the most closest labeled points w.r.t the centroid pts
+//
 
-	vector<vector<cv::Point> > contours;
-	vector<cv::Vec4i> hierarchy;
-	cv::findContours( img_frontiers, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );
-
-	if( contours.size() == 0 )
-		return;
-
-	// iterate through all the top-level contours,
-	// draw each connected component with its own random color
-	int idx = 0;
-	for( ; idx >= 0; idx = hierarchy[idx][0] )
-	{
-//ROS_INFO("hierarchy: %d \n", idx);
-		cv::Scalar color( rand()&255, rand()&255, rand()&255 );
-		drawContours( dst, contours, idx, color, CV_FILLED, 8, hierarchy );
-		drawContours( img_labeled, contours, idx, cv::Scalar(0,0,255), CV_FILLED, 8, hierarchy );
-	}
 
 
 #ifdef FD_DEBUG_MODE
@@ -304,67 +331,19 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	cv::imwrite(m_str_debugpath + "/img_frontiers.png",img_frontiers);
 #endif
 
-	vector<cv::Point2f> fcents;
-	for(int i=0; i < contours.size(); i++)
-	{
-		float fx =0, fy =0 ;
-		float fcnt = 0 ;
-		vector<cv::Point> contour = contours[i];
-		for( int j=0; j < contour.size(); j++)
-		{
-			fx += static_cast<float>( contour[j].x ) ;
-			fy += static_cast<float>( contour[j].y ) ;
-			fcnt += 1.0;
-		}
-		fx = fx/fcnt ;
-		fy = fy/fcnt ;
-
-		cv::Point2f fcent( fx,  fy ) ;
-		fcents.push_back(fcent);
-	}
 
 	// get closest frontier pt to each cent
 	// i.e.) the final estimated frontier points
 	vector<FrontierPoint> voFrontierCands;
 
-	for( int i = 0; i < contours.size(); i++ )
+	for( int i = 0; i < numtotfpts; i++ )
 	{
-		vector<cv::Point> contour = contours[i] ;
-		if(contour.size() < m_frontiers_region_thr ) // don't care about small frontier regions
-			continue ;
 
-		float fcentx = fcents[i].x ;
-		float fcenty = fcents[i].y ;
-
-		float fmindist = 1000 ;
-		int nmindistidx = -1;
-
-		for (int j=0; j < contour.size(); j++)
-		{
-			float fx = static_cast<float>(contour[j].x) ;
-			float fy = static_cast<float>(contour[j].y) ;
-			float fdist = std::sqrt( (fx - fcentx) * (fx - fcentx) + (fy - fcenty) * (fy - fcenty) );
-			if(fdist < fmindist)
-			{
-				fmindist = fdist ;
-				nmindistidx = j ;
-			}
-		}
-
-		CV_Assert(nmindistidx >= 0);
-		cv::Point frontier = contour[nmindistidx];
-
-		if(
-			(ROI_OFFSET > 0) &&
-			(frontier.x <= ROI_OFFSET || frontier.y <= ROI_OFFSET ||
-			 frontier.x >= gmwidth + ROI_OFFSET || frontier.y >= gmheight + ROI_OFFSET)
-		   )
-		{
-			continue;
-		}
-
-		frontier.x = frontier.x - ROI_OFFSET ;
-		frontier.y = frontier.y - ROI_OFFSET ;
+//		frontier.x = frontier.x - ROI_OFFSET ;
+//		frontier.y = frontier.y - ROI_OFFSET ;
+		uint32_t myidx = vrandomidx[i] ;
+//cout << "myidx: " << myidx << endl;
+		cv::Point frontier( nonzeroloc.at<cv::Point>(myidx).x, nonzeroloc.at<cv::Point>(myidx).y);
 
 		//frontiers_cand.push_back(frontier) ;
 		FrontierPoint oPoint( frontier, gmheight, gmwidth,
@@ -407,24 +386,18 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	if( globalcostmap.info.width > 0 )
 	{
 		//frontiers = eliminateSupriousFrontiers( m_globalcostmap, frontiers_cand, m_nROISize) ;
-		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
-		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
+//		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
+//		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
-			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
-
-//		set<pointset, pointset> unreachable_frontiers;
-//		{
-//			//const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
-//			unreachable_frontiers = m_unreachable_frontier_set ;
-//			//m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
-//		}
+			voFrontierCands[idx].SetFrontierFlag( 0, 0 );
 	}
 	else
 	{
 		//ROS_INFO("costmap hasn't updated \n");
 		//frontiers = frontiers_cand ; // points in img coord
 	}
+
 
 #ifdef FD_DEBUG_MODE
 	string strcandfile = m_str_debugpath + "/front_cand.txt" ;
@@ -613,10 +586,10 @@ int numthreads;// = omp_get_num_threads() ;
 vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
 
 printf("\n\n\n ******************************************************** \n");
-printf("***                          begin GP here ******************** \n");
+printf("***                          begin GP here 					*** \n");
 printf("*************************************************************** \n\n\n");
 
-int nrepeat = 2000;
+int nrepeat = 1;
 //std::clock_t GPstartTime = clock();
 std::vector<geometry_msgs::PoseStamped> best_plan;
 auto begin_time = std::chrono::high_resolution_clock::now();
@@ -624,7 +597,7 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 //vector< float	 > endpotentials( numthreads );
 omp_set_num_threads(mn_numthreads);
 
-mp_threadutil->read_procstat_old();
+//mp_threadutil->read_procstat_old();
 
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
@@ -679,9 +652,10 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 
 } // end of repeatidx
 
-mp_threadutil->read_procstat_cur();
-mp_threadutil->set_numtotcpu( omp_get_num_procs() );
-mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
+
+//mp_threadutil->read_procstat_cur();
+//mp_threadutil->set_numtotcpu( omp_get_num_procs() );
+//mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
 
 
 //std::vector<geometry_msgs::PoseStamped> best_plan ;

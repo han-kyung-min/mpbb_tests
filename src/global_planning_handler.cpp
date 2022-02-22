@@ -459,10 +459,10 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     unsigned int mx, my;
     if(!mp_costmap->worldToMap(wx, wy, mx, my))
     {
-//      printf("%f %f %f %f %d %d %f\n", wx, wy, mp_costmap->getOriginX(), mp_costmap->getOriginY(),
-//    							mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY(),
-//								mp_costmap->getResolution() );
-      printf("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+      printf("%f %f %f %f %d %d %f\n", wx, wy, mp_costmap->getOriginX(), mp_costmap->getOriginY(),
+    							mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY(),
+								mp_costmap->getResolution() );
+      printf("The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized? \n");
       return false;
     }
 
@@ -492,7 +492,12 @@ bool GlobalPlanningHandler::makePlan( const int& tid, const float& fbound, const
     {
       if(mf_tolerance <= 0.0)
       {
-        printf("The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal.");
+          printf("mf_tolerance:<%f> %f %f %f %f %d %d %f\n", mf_tolerance,
+        		  	  	  	  	  	wx, wy, mp_costmap->getOriginX(), mp_costmap->getOriginY(),
+        							mp_costmap->getSizeInCellsX(), mp_costmap->getSizeInCellsY(),
+    								mp_costmap->getResolution() );
+
+        printf("The goal sent to the global_planning_handler is off the global costmap. Planning will always fail to this goal. \n");
         return false;
       }
       mx = 0;
