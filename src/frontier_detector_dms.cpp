@@ -618,7 +618,7 @@ printf("*************************************************************** \n\n\n")
 
 int nrepeat = 2000;
 //std::clock_t GPstartTime = clock();
-
+std::vector<geometry_msgs::PoseStamped> best_plan;
 auto begin_time = std::chrono::high_resolution_clock::now();
 
 //vector< float	 > endpotentials( numthreads );
@@ -671,6 +671,7 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		{
 			#pragma omp atomic write
 				fupperbound = fendpot; // set new bound;
+			//best_plan = plan;
 		}
 	}
 	delete mpo_gph;
@@ -683,7 +684,7 @@ mp_threadutil->set_numtotcpu( omp_get_num_procs() );
 mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
 
 
-std::vector<geometry_msgs::PoseStamped> best_plan ;
+//std::vector<geometry_msgs::PoseStamped> best_plan ;
 size_t best_len = 100000000 ;
 size_t best_idx = 0;
 for(size_t idx=0; idx < gplansizes.size(); idx++ )
@@ -709,8 +710,14 @@ m_ofs_time << numthreads << " " << m_points.points.size() << " " << avg_gp_time_
 m_ofs_time << endl;
 m_ofs_time.close();
 
-
 p = m_points.points[best_idx];  // just for now... we need to fix it later
+
+//printf("%f %f",start.pose.position.x, start.pose.position.y);
+//printf("%f %f",p.x, p.y);
+//for(int idx=0; idx< best_plan.size(); idx++)
+//	printf("%f %f\n",best_plan[idx].pose.position.x, best_plan[idx].pose.position.y );
+
+
 
 // display and debugging
 //cv::Mat img_rgb;
