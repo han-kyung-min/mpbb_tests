@@ -292,7 +292,7 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	cv::Mat dst_;
 	cvtColor(img_, dst_, cv::COLOR_GRAY2BGR);
 
-	int numtotfpts = nonzeroloc.total() ;
+	int numtotfpts = 10; //nonzeroloc.total() ;
 	srand( (uint32_t)time(NULL) );
 
 	vector<uint32_t> vrandomidx;
@@ -584,18 +584,18 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 int numthreads;// = omp_get_num_threads() ;
 
 vector< uint32_t > gplansizes( m_points.points.size(), 0 ) ;
+vector< vector<geometry_msgs::PoseStamped> > path_plans ;
+path_plans.resize(m_points.points.size());
 
 printf("\n\n\n ******************************************************** \n");
 printf("***                          begin GP here 					*** \n");
 printf("*************************************************************** \n\n\n");
 
+omp_set_num_threads(mn_numthreads);
 int nrepeat = 1;
 //std::clock_t GPstartTime = clock();
 std::vector<geometry_msgs::PoseStamped> best_plan;
 auto begin_time = std::chrono::high_resolution_clock::now();
-
-//vector< float	 > endpotentials( numthreads );
-omp_set_num_threads(mn_numthreads);
 
 //mp_threadutil->read_procstat_old();
 
@@ -630,11 +630,11 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		float fendpot;
 		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-//printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
-//										  bplansuccess, tid, idx,
-//										  start.pose.position.x, start.pose.position.y,
-//										  goal.pose.position.x, goal.pose.position.y, fendpot);
-
+printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
+										  bplansuccess, tid, idx,
+										  start.pose.position.x, start.pose.position.y,
+										  goal.pose.position.x, goal.pose.position.y, fendpot);
+path_plans[idx] = plan;
 
 //ros::WallTime mpEndTime = ros::WallTime::now();
 		gplansizes[idx] = plan.size();
@@ -671,6 +671,42 @@ for(size_t idx=0; idx < gplansizes.size(); idx++ )
 		//best_plan = plan ;
 	}
 }
+
+cv::Mat map_path;
+cvtColor(img_, map_path, cv::COLOR_GRAY2BGR);
+
+for(int idx=0; idx < path_plans.size(); idx++ )
+{
+	std::vector<geometry_msgs::PoseStamped> myplan = path_plans[idx] ;
+	if( myplan.size() == 0 )
+	{
+		printf("%d is not a valid path \n", idx );
+		continue;
+	}
+	for(int ii=0; ii < myplan.size(); ii++)
+	{
+		cv::Point pt = world2gridmap( cv::Point2f( myplan[ii].pose.position.x, myplan[ii].pose.position.y ) ) ;
+		cv::circle(map_path,  pt, 0, cv::Scalar(0,255,0), -1, 8, 0) ;
+	}
+
+	// goal and start are swapped in the algorithm
+	cv::Point spt = world2gridmap( cv::Point2f(myplan[ 0].pose.position.x, myplan[ 0].pose.position.y ) );
+	cv::Point gpt = world2gridmap( cv::Point2f(myplan[ myplan.size()-1].pose.position.x, myplan[ myplan.size()-1].pose.position.y ) );
+
+	cv::circle(map_path,  spt , 3, cv::Scalar(0,0,255), 2, 8, 0) ;
+	cv::circle(map_path,  gpt , 1, cv::Scalar(255,0,0), 1, 8, 0) ;
+}
+
+best_plan = path_plans[best_idx];
+for(int ii=0; ii < best_plan.size(); ii++)
+{
+	cv::Point pt = world2gridmap( cv::Point2f( best_plan[ii].pose.position.x, best_plan[ii].pose.position.y ) ) ;
+	cv::circle(map_path,  pt, 0, cv::Scalar(255,255,0), -1, 8, 0) ;
+}
+
+cv::namedWindow("res",1);
+cv::imshow("res", map_path);
+cv::waitKey(0);
 
 //std::clock_t GPEndTime = clock();
 
