@@ -292,7 +292,7 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	cv::Mat dst_;
 	cvtColor(img_, dst_, cv::COLOR_GRAY2BGR);
 
-	int numtotfpts = 10; //nonzeroloc.total() ;
+	int numtotfpts = nonzeroloc.total() ;
 	srand( (uint32_t)time(NULL) );
 
 	vector<uint32_t> vrandomidx;
@@ -630,10 +630,10 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		float fendpot;
 		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
-										  bplansuccess, tid, idx,
-										  start.pose.position.x, start.pose.position.y,
-										  goal.pose.position.x, goal.pose.position.y, fendpot);
+//printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
+//										  bplansuccess, tid, idx,
+//										  start.pose.position.x, start.pose.position.y,
+//										  goal.pose.position.x, goal.pose.position.y, fendpot);
 path_plans[idx] = plan;
 
 //ros::WallTime mpEndTime = ros::WallTime::now();
@@ -659,54 +659,54 @@ path_plans[idx] = plan;
 
 
 //std::vector<geometry_msgs::PoseStamped> best_plan ;
-size_t best_len = 100000000 ;
-size_t best_idx = 0;
-for(size_t idx=0; idx < gplansizes.size(); idx++ )
-{
-	size_t curr_len = gplansizes[idx] ;
-	if(curr_len < best_len && curr_len > MIN_TARGET_DIST)
-	{
-		best_len = curr_len ;
-		best_idx = idx ;
-		//best_plan = plan ;
-	}
-}
+//size_t best_len = 100000000 ;
+//size_t best_idx = 0;
+//for(size_t idx=0; idx < gplansizes.size(); idx++ )
+//{
+//	size_t curr_len = gplansizes[idx] ;
+//	if(curr_len < best_len && curr_len > MIN_TARGET_DIST)
+//	{
+//		best_len = curr_len ;
+//		best_idx = idx ;
+//		//best_plan = plan ;
+//	}
+//}
 
-cv::Mat map_path;
-cvtColor(img_, map_path, cv::COLOR_GRAY2BGR);
+//cv::Mat map_path;
+//cvtColor(img_, map_path, cv::COLOR_GRAY2BGR);
+//
+//for(int idx=0; idx < path_plans.size(); idx++ )
+//{
+//	std::vector<geometry_msgs::PoseStamped> myplan = path_plans[idx] ;
+//	if( myplan.size() == 0 )
+//	{
+//		printf("%d is not a valid path \n", idx );
+//		continue;
+//	}
+//	for(int ii=0; ii < myplan.size(); ii++)
+//	{
+//		cv::Point pt = world2gridmap( cv::Point2f( myplan[ii].pose.position.x, myplan[ii].pose.position.y ) ) ;
+//		cv::circle(map_path,  pt, 0, cv::Scalar(0,255,0), -1, 8, 0) ;
+//	}
+//
+//	// goal and start are swapped in the algorithm
+//	cv::Point spt = world2gridmap( cv::Point2f(myplan[ 0].pose.position.x, myplan[ 0].pose.position.y ) );
+//	cv::Point gpt = world2gridmap( cv::Point2f(myplan[ myplan.size()-1].pose.position.x, myplan[ myplan.size()-1].pose.position.y ) );
+//
+//	cv::circle(map_path,  spt , 3, cv::Scalar(0,0,255), 2, 8, 0) ;
+//	cv::circle(map_path,  gpt , 1, cv::Scalar(255,0,0), 1, 8, 0) ;
+//}
+//
+//best_plan = path_plans[best_idx];
+//for(int ii=0; ii < best_plan.size(); ii++)
+//{
+//	cv::Point pt = world2gridmap( cv::Point2f( best_plan[ii].pose.position.x, best_plan[ii].pose.position.y ) ) ;
+//	cv::circle(map_path,  pt, 0, cv::Scalar(255,255,0), -1, 8, 0) ;
+//}
 
-for(int idx=0; idx < path_plans.size(); idx++ )
-{
-	std::vector<geometry_msgs::PoseStamped> myplan = path_plans[idx] ;
-	if( myplan.size() == 0 )
-	{
-		printf("%d is not a valid path \n", idx );
-		continue;
-	}
-	for(int ii=0; ii < myplan.size(); ii++)
-	{
-		cv::Point pt = world2gridmap( cv::Point2f( myplan[ii].pose.position.x, myplan[ii].pose.position.y ) ) ;
-		cv::circle(map_path,  pt, 0, cv::Scalar(0,255,0), -1, 8, 0) ;
-	}
-
-	// goal and start are swapped in the algorithm
-	cv::Point spt = world2gridmap( cv::Point2f(myplan[ 0].pose.position.x, myplan[ 0].pose.position.y ) );
-	cv::Point gpt = world2gridmap( cv::Point2f(myplan[ myplan.size()-1].pose.position.x, myplan[ myplan.size()-1].pose.position.y ) );
-
-	cv::circle(map_path,  spt , 3, cv::Scalar(0,0,255), 2, 8, 0) ;
-	cv::circle(map_path,  gpt , 1, cv::Scalar(255,0,0), 1, 8, 0) ;
-}
-
-best_plan = path_plans[best_idx];
-for(int ii=0; ii < best_plan.size(); ii++)
-{
-	cv::Point pt = world2gridmap( cv::Point2f( best_plan[ii].pose.position.x, best_plan[ii].pose.position.y ) ) ;
-	cv::circle(map_path,  pt, 0, cv::Scalar(255,255,0), -1, 8, 0) ;
-}
-
-cv::namedWindow("res",1);
-cv::imshow("res", map_path);
-cv::waitKey(0);
+//cv::namedWindow("res",1);
+//cv::imshow("res", map_path);
+//cv::waitKey(0);
 
 //std::clock_t GPEndTime = clock();
 
@@ -720,7 +720,7 @@ m_ofs_time << numthreads << " " << m_points.points.size() << " " << avg_gp_time_
 m_ofs_time << endl;
 m_ofs_time.close();
 
-p = m_points.points[best_idx];  // just for now... we need to fix it later
+//p = m_points.points[best_idx];  // just for now... we need to fix it later
 
 //printf("%f %f",start.pose.position.x, start.pose.position.y);
 //printf("%f %f",p.x, p.y);

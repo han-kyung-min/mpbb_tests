@@ -39,11 +39,9 @@ def main(argv):
 
             os.system('{}/binary_ws/mpbb_tests/bin/mpbb_run {}'.format(homedir,num_threads))
 
-            outfiletxt = '{}/results/autoexploration/mpbb/planning_time_{}_{}.txt'.format(homedir,num_threads,roundidx)
-            shutil.copy('{}/results/autoexploration/planning_time.txt'.format(homedir), outfiletxt)
+            outfiletxt = '{}/results/autoexploration/mp_process/mp_for/runtime_{}_{}.txt'.format(homedir,num_threads,roundidx)
+            shutil.copy('{}/results/autoexploration/mp_process/runtime.txt'.format(homedir), outfiletxt)
 
-            cpuprofiletxt = '{}/results/autoexploration/cpu_utility/threadutility_{}_{}.txt'.format(homedir,num_threads, roundidx)
-            shutil.copy('{}/results/autoexploration/threadutility.txt'.format(homedir),cpuprofiletxt)
             time.sleep(1)
     
 if __name__ == '__main__':
