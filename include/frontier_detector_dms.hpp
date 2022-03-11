@@ -65,7 +65,7 @@ protected:
 
 	FrontierFilter m_oFrontierFilter;
 
-	GlobalPlanningHandler* mpo_gph ;
+	//GlobalPlanningHandler* mpo_gph ;
 
 	GlobalPlanningHandler mo_gph ;
 	costmap_2d::Costmap2D* mpo_costmap;

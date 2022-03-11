@@ -80,7 +80,7 @@ private:
     std::string robot_base_frame_, global_frame_;
 
     float mf_tolerance ;
-    boost::mutex m_mutex;
+//    boost::mutex m_mutex;
     bool mb_initialized ;
     bool mb_allow_unknown;
     bool mb_visualize_potential ;

@@ -14,7 +14,7 @@ namespace autoexplorer
 
 FrontierDetectorDMS::FrontierDetectorDMS( int numthreads ):
 m_nglobalcostmapidx(0), mn_numthreads(numthreads),
-mpo_gph(NULL),
+//mpo_gph(NULL),
 mp_cost_translation_table(NULL)
 {
 	// gridmap generated from octomap might be downsampled !!
@@ -596,6 +596,7 @@ printf("*************************************************************** \n\n\n")
 //normal_distribution<double> distribution(0.0, 1.0);
 
 std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+GlobalPlanningHandler o_gph( *mpo_costmap );
 
 omp_set_num_threads(mn_numthreads);
 omp_init_lock(&m_mplock);
@@ -606,16 +607,13 @@ int nnumpts = m_points.points.size();
 std::vector<geometry_msgs::PoseStamped> best_plan;
 auto begin_time = std::chrono::high_resolution_clock::now();
 
-//mp_threadutil->read_procstat_old();
-
-
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
 
-#pragma omp parallel firstprivate( mpo_gph, fpoints ) shared( fupperbound )
+#pragma omp parallel firstprivate( o_gph, fpoints ) shared( fupperbound )
 {
 	numthreads = mn_numthreads; //omp_get_num_threads() ;
-	mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
+	//mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
 
 	#pragma omp for // schedule(dynamic)
 	for (size_t idx=0; idx < nnumpts; idx++)
@@ -623,31 +621,22 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		int tid = omp_get_thread_num() ;
 
 //printf("processing (%f %f) with thread %d/%d : %d\n", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
-		//#pragma omp atomic
 
-		//pogph = new GlobalPlanningHandler();
-		mpo_gph->reinitialization( ) ;
+		o_gph.reinitialization( ) ;
 //printf("setting costmap \n");
 
-		//p = m_points.points[idx];  // just for now... we need to fix it later
 		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[idx].x, fpoints[idx].y, 0.f );
-
-//		geometry_msgs::PoseStamped goal = StampedPosefromSE2(distribution(generator), distribution(generator), 0.f );
-
 		goal.header.frame_id = m_worldFrameId ;
 		std::vector<geometry_msgs::PoseStamped> plan;
-//ros::WallTime mpStartTime = ros::WallTime::now();
 //printf("done here 1\n");
 		float fendpot;
-		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 //printf("done here 2\n");
 //printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
 //										  bplansuccess, tid, idx,
 //										  start.pose.position.x, start.pose.position.y,
 //										  goal.pose.position.x, goal.pose.position.y, fendpot);
 //path_plans[idx] = plan;
-
-//ros::WallTime mpEndTime = ros::WallTime::now();
 		//gplansizes[idx] = plan.size();
 
 		if( fendpot < fupperbound )
@@ -660,7 +649,7 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		}
 	}
 
-	delete mpo_gph;
+//	delete mpo_gph;
 }
 
 omp_destroy_lock(&m_mplock);
