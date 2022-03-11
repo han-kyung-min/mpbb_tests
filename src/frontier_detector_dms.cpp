@@ -538,43 +538,6 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	//const float initbound = static_cast<float>(DIST_HIGH) ;
 	fupperbound = static_cast<float>(DIST_HIGH) ;
 
-//ros::WallTime initStartTime = ros::WallTime::now();
-//
-//	size_t tmpidx;
-//	for( size_t idx =0; idx < init_heuristic.size(); idx++)
-//	{
-//		mpo_gph->reinitialization( mpo_costmap ) ;
-//
-//		min_heuristic_idx = init_heuristic[idx].first ;
-//		//cv::Point2f frontier_in_world = voFrontierCands[min_heuristic_idx].GetCorrectedWorldPosition();
-//		geometry_msgs::Point point = m_points.points[min_heuristic_idx] ;
-//		geometry_msgs::PoseStamped initgoal = StampedPosefromSE2( (float)point.x, (float)point.y, 0.f );
-//		initgoal.header.frame_id = m_worldFrameId ;
-//		bool bsuccess = mpo_gph->makePlan(0, initbound, true, start, initgoal, initplan, fendpot);
-//		fupperbound = fendpot ;
-//
-//		if(bsuccess)
-//		{
-//			ROS_INFO("[init condition found] (%f %f) to (%f %f) corresponds to min idx: %d  bound pot: %f \n ",
-//					start.pose.position.x, start.pose.position.y,
-//					initgoal.pose.position.x, initgoal.pose.position.y, min_heuristic_idx, fendpot);
-//			break;
-//		}
-//	}
-//
-//	delete mpo_gph;
-//
-//ros::WallTime initEndTime = ros::WallTime::now();
-//		//ROS_INFO("thread: %d %p %p \n", omp_get_thread_num(), mpo_gph, mpo_costmap);
-//double init_time = (initEndTime - initStartTime).toNSec() * 1e-6;
-//{
-//	const std::unique_lock<mutex> lock(mutex_timing_profile) ;
-//	m_ofs_time << "init time: " << init_time << " init bound " << fupperbound << " initplan len " << initplan.size() << endl;
-//	m_ofs_time << "pid \t" << "tid \t" << "plan size \t" << "mp_time " << "min_heuristic_idx " << "fendpot " << "fupperbound \t" << endl;
-//}
-////ROS_INFO("(%d) init bound %f init plan time %f  init plan len %d",tmpidx, min_heuristic_idx, fupperbound, init_time, initplan.size() );
-
-
 //exit(-1);
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
@@ -597,6 +560,7 @@ printf("*************************************************************** \n\n\n")
 
 std::vector<geometry_msgs::Point> fpoints = m_points.points ;
 GlobalPlanningHandler o_gph( *mpo_costmap );
+std::vector<geometry_msgs::PoseStamped> plan;
 
 omp_set_num_threads(mn_numthreads);
 omp_init_lock(&m_mplock);
@@ -610,9 +574,9 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
 
-#pragma omp parallel firstprivate( o_gph, fpoints ) shared( fupperbound )
+#pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot ) shared( fupperbound )
 {
-	numthreads = mn_numthreads; //omp_get_num_threads() ;
+	//numthreads = mn_numthreads; //omp_get_num_threads() ;
 	//mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
 
 	#pragma omp for // schedule(dynamic)
@@ -627,9 +591,9 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 
 		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[idx].x, fpoints[idx].y, 0.f );
 		goal.header.frame_id = m_worldFrameId ;
-		std::vector<geometry_msgs::PoseStamped> plan;
+		//std::vector<geometry_msgs::PoseStamped> plan;
 //printf("done here 1\n");
-		float fendpot;
+		//float fendpot;
 		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 //printf("done here 2\n");
 //printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
@@ -655,11 +619,6 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 omp_destroy_lock(&m_mplock);
 
 } // end of repeatidx
-
-
-//mp_threadutil->read_procstat_cur();
-//mp_threadutil->set_numtotcpu( omp_get_num_procs() );
-//mp_threadutil->meas_cpu_percent( mn_numthreads, m_points.points.size() );
 
 
 //std::vector<geometry_msgs::PoseStamped> best_plan ;
