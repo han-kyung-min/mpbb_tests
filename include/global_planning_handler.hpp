@@ -29,10 +29,11 @@ class GlobalPlanningHandler
 
 public:
 	GlobalPlanningHandler( );
+	GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap );
 	virtual ~GlobalPlanningHandler();
 
 	void initialization() ;
-	void reinitialization( costmap_2d::Costmap2D* pocostmap2d ) ;
+	void reinitialization( ); //costmap_2d::Costmap2D* pocostmap2d ) ;
 
 	bool makePlan( const geometry_msgs::PoseStamped start, const geometry_msgs::PoseStamped goal,
 			  	  std::vector<geometry_msgs::PoseStamped>& plan );
@@ -69,7 +70,7 @@ private:
     void clearRobotCell(const geometry_msgs::PoseStamped& global_pose, unsigned int mx, unsigned int my);
 
 	// global planner and costmap related variables
-    costmap_2d::Costmap2D* mp_costmap;
+    costmap_2d::Costmap2D m_costmap;
 	//boost::shared_ptr<costmap_2d::Costmap2D> mp_costmap;
 
 //	pluginlib::ClassLoader<nav_core::BaseGlobalPlanner> bgp_loader_;

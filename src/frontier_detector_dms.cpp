@@ -292,7 +292,7 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	cv::Mat dst_;
 	cvtColor(img_, dst_, cv::COLOR_GRAY2BGR);
 
-	int numtotfpts = nonzeroloc.total() ;
+	int numtotfpts = 1000; //nonzeroloc.total() ;
 	srand( (uint32_t)time(NULL) );
 
 	vector<uint32_t> vrandomidx;
@@ -532,7 +532,7 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 
 	//mpo_gph = new GlobalPlanningHandler();
 
-	float fupperbound;
+	alignas(64) float fupperbound;
 	std::vector<geometry_msgs::PoseStamped> initplan;
 	float fendpot = POT_HIGH;
 	//const float initbound = static_cast<float>(DIST_HIGH) ;
@@ -591,64 +591,79 @@ printf("\n\n\n ******************************************************** \n");
 printf("***                          begin GP here 					*** \n");
 printf("*************************************************************** \n\n\n");
 
+//unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+//default_random_engine generator(seed);
+//normal_distribution<double> distribution(0.0, 1.0);
+
+std::vector<geometry_msgs::Point> fpoints = m_points.points ;
+
 omp_set_num_threads(mn_numthreads);
+omp_init_lock(&m_mplock);
+
 int nrepeat = 1;
+int nnumpts = m_points.points.size();
 //std::clock_t GPstartTime = clock();
 std::vector<geometry_msgs::PoseStamped> best_plan;
 auto begin_time = std::chrono::high_resolution_clock::now();
 
 //mp_threadutil->read_procstat_old();
 
+
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
 
-#pragma omp parallel firstprivate( mpo_gph ) shared( mpo_costmap, gplansizes, fupperbound )
+#pragma omp parallel firstprivate( mpo_gph, fpoints ) shared( fupperbound )
 {
-	mpo_gph = new GlobalPlanningHandler();
 	numthreads = mn_numthreads; //omp_get_num_threads() ;
+	mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
 
 	#pragma omp for // schedule(dynamic)
-	for (size_t idx=0; idx < m_points.points.size(); idx++)
+	for (size_t idx=0; idx < nnumpts; idx++)
 	{
 		int tid = omp_get_thread_num() ;
 
-//printf("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
+//printf("processing (%f %f) with thread %d/%d : %d\n", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
 		//#pragma omp atomic
 
 		//pogph = new GlobalPlanningHandler();
-		mpo_gph->reinitialization( mpo_costmap ) ;
-//ROS_INFO("setting costmap \n");
-//		pogph->setCostmap(Data, m_globalcostmap.info.width, m_globalcostmap.info.height, m_globalcostmap.info.resolution,
-//						m_globalcostmap.info.origin.position.x, m_globalcostmap.info.origin.position.y) ;
+		mpo_gph->reinitialization( ) ;
+//printf("setting costmap \n");
 
-		p = m_points.points[idx];  // just for now... we need to fix it later
-		geometry_msgs::PoseStamped goal = StampedPosefromSE2( p.x, p.y, 0.f );
+		//p = m_points.points[idx];  // just for now... we need to fix it later
+		geometry_msgs::PoseStamped goal = StampedPosefromSE2( fpoints[idx].x, fpoints[idx].y, 0.f );
+
+//		geometry_msgs::PoseStamped goal = StampedPosefromSE2(distribution(generator), distribution(generator), 0.f );
+
 		goal.header.frame_id = m_worldFrameId ;
 		std::vector<geometry_msgs::PoseStamped> plan;
 //ros::WallTime mpStartTime = ros::WallTime::now();
-
+//printf("done here 1\n");
 		float fendpot;
 		bool bplansuccess = mpo_gph->makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
-
+//printf("done here 2\n");
 //printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
 //										  bplansuccess, tid, idx,
 //										  start.pose.position.x, start.pose.position.y,
 //										  goal.pose.position.x, goal.pose.position.y, fendpot);
-path_plans[idx] = plan;
+//path_plans[idx] = plan;
 
 //ros::WallTime mpEndTime = ros::WallTime::now();
-		gplansizes[idx] = plan.size();
+		//gplansizes[idx] = plan.size();
 
-//ros::WallTime mpAtomicStartTime = ros::WallTime::now();
 		if( fendpot < fupperbound )
 		{
-			#pragma omp atomic write
-				fupperbound = fendpot; // set new bound;
+			//#pragma omp atomic write
+			omp_set_lock(&m_mplock);
+			fupperbound = fendpot; // set new bound;
+			omp_unset_lock(&m_mplock);
 			//best_plan = plan;
 		}
 	}
+
 	delete mpo_gph;
 }
+
+omp_destroy_lock(&m_mplock);
 
 } // end of repeatidx
 

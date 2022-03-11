@@ -17,12 +17,14 @@
 #include "global_planning_handler.hpp"
 #include <omp.h>
 #include <visualization_msgs/Marker.h>
+#include <random>
+#include <chrono>
 //#include "std_msgs/Empty.h"
 
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
 #define ROI_OFFSET (10)
-#define DIST_HIGH  (1.0e10)
+#define DIST_HIGH  (1.0e8)
 
 namespace autoexplorer
 {
@@ -64,6 +66,7 @@ protected:
 	FrontierFilter m_oFrontierFilter;
 
 	GlobalPlanningHandler* mpo_gph ;
+
 	GlobalPlanningHandler mo_gph ;
 	costmap_2d::Costmap2D* mpo_costmap;
 
@@ -77,6 +80,8 @@ private:
 	std::mutex mutex_costmap;
 	std::mutex mutex_upperbound;
 	std::mutex mutex_timing_profile;
+
+	omp_lock_t m_mplock;
 
 	ThreadUtilityMeas* mp_threadutil; ;
 };
