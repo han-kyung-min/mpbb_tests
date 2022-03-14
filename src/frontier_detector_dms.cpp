@@ -292,7 +292,7 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	cv::Mat dst_;
 	cvtColor(img_, dst_, cv::COLOR_GRAY2BGR);
 
-	int numtotfpts = 5000; //nonzeroloc.total() ;
+	int numtotfpts = 1000; //nonzeroloc.total() ;
 	srand( (uint32_t)time(NULL) );
 
 	vector<uint32_t> vrandomidx;
