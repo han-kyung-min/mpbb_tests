@@ -562,6 +562,7 @@ std::vector<geometry_msgs::Point> fpoints = m_points.points ;
 GlobalPlanningHandler o_gph( *mpo_costmap );
 std::vector<geometry_msgs::PoseStamped> plan;
 
+mn_numthreads = 1;
 omp_set_num_threads(mn_numthreads);
 omp_init_lock(&m_mplock);
 
