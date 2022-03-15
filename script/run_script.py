@@ -38,11 +38,11 @@ def main(argv):
             global exploration_status
 
             os.system('{}/binary_ws/mpbb_tests/bin/mpbb_run {}'.format(homedir,num_threads))
-
-            outfiletxt = '{}/results/autoexploration/mpbb-masspts/runtime_{}_{}.txt'.format(homedir,num_threads,roundidx)
+            time.sleep(.1)
+            outfiletxt = '{}/results/autoexploration/mpbb/runtime_{}_{}.txt'.format(homedir,num_threads,roundidx)
             shutil.copy('{}/results/autoexploration/planning_time.txt'.format(homedir), outfiletxt)
 
-            time.sleep(1)
+            time.sleep(.1)
     
 if __name__ == '__main__':
     main(sys.argv)
