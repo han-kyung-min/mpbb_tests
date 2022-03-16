@@ -31,10 +31,11 @@ int main(int argc, char** argv)
     //front_detector_dms.SetNumThreads(numthreads);
 
     string homedir = getenv("HOME");
-    string costmapfile = homedir+"/results/autoexploration/tmp/cm001.txt" ;
-    string gridmapfile = homedir+"/results/autoexploration/tmp/gm001.txt" ;
-    front_detector_dms.loadGridMap(gridmapfile);
-    front_detector_dms.loadCostMap(costmapfile);
+    string costmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00010.png" ;
+    string gridmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00010.png" ;
+    string mapinfofile    = homedir+"/results/autoexploration/tmp/deutschemuseum/mapinfo00010.txt";
+    front_detector_dms.loadGridMap(gridmapimgfile, mapinfofile);
+    front_detector_dms.loadCostMap(costmapimgfile, mapinfofile);
     front_detector_dms.processMap() ;
 
   return 0;

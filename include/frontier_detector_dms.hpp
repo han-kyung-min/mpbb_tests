@@ -39,6 +39,9 @@ public:
 
 	void loadGridMap( const string& filename);
 	void loadCostMap( const string& filename);
+	void loadGridMap( const string& imgfilename, const string& mapinfofile) ;
+	void loadCostMap( const string& imgfilename, const string& mapinfofile);
+
 	void setCostMap(const string& costmapfile);
 	void setGridMap(const string& gridmapfile);
 	void processMap() ;
@@ -55,6 +58,7 @@ public:
 protected:
 
 	visualization_msgs::Marker m_points, m_cands;
+	cv::Point2f m_robotpose ;
 
 	int mn_numthreads;
 	int m_nglobalcostmapidx ;

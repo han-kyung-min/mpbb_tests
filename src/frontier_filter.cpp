@@ -43,7 +43,9 @@ static int cmapidx = 0;
 
 	std::vector<signed char> Data=costmapData.data;
 
-//ROS_INFO("origin in costmap: %f %f\n", fXstart, fXstart );
+printf("origin in costmap: %f %f\n", fXstart, fYstart );
+printf("costmap size: %d \n", Data.size());
+
 
 #ifdef FD_DEBUG_MODE
 	m_nglobalcostmapidx++;
@@ -108,7 +110,7 @@ static int cmapidx = 0;
 		int ex = MIN(px_c + m_ncostmap_roi_size, width) ;
 		int sy = MAX(py_c - m_ncostmap_roi_size, 0);
 		int ey = MIN(py_c + m_ncostmap_roi_size, height) ;
-//ROS_INFO("cm test window: %d %d %d %d \n", sx, ex, sy, ey);
+//printf("cm test window: %d %d %d %d \n", sx, ex, sy, ey);
 		//ofs_fpc << px_c << " " << py_c << endl;
 
 //	char tmp[200];
@@ -119,19 +121,20 @@ static int cmapidx = 0;
 //	str_fptroi << px_c << " " << py_c << " " ;
 #ifdef FD_DEBUG_MODE
 #endif
-//ROS_INFO(" idx px py %u %d %d\n", idx, px_c, py_c);
+//printf(" idx px py %u %d %d\n", idx, px_c, py_c);
 		cv::Mat roi = cv::Mat::zeros(ey - sy + 1, ex - sx + 1, CV_8S);
-
 		int cellcnt = 0;
 		int totcost = 0;
 		for( int ridx =sy; ridx < ey; ridx++)
 		{
 			for( int cidx=sx; cidx < ex; cidx++)
 			{
+//printf("ridx (%d) cidx (%d) width (%d)\n", ridx, cidx, width);
 				//int dataidx = px_c + cidx + (py_c + ridx) * width ;
 				int dataidx = ridx * width + cidx ;
-//ROS_INFO("ind rix cidx %d %d %d ", idx, ridx, cidx);
+//printf("ind rix cidx %d %d %d ", idx, ridx, cidx); fflush(stdout);
 				cost = Data[dataidx] ; // orig 0 ~ 254 --> mapped to 0 ~ 100
+//printf("cost : %d \n", cost); fflush(stdout);
 				if(cost >= 0 )// m_nlethal_cost_thr) //LEATHAL_COST_THR ) // unknown (-1)
 				{
 					//ncost++;
@@ -157,7 +160,6 @@ static int cmapidx = 0;
 		ofs_fptroi.close();
 		ofs_incostmap.close();
 #endif
-
 	}
 
 //ofs_fpc.close();

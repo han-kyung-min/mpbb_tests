@@ -163,6 +163,82 @@ void FrontierDetectorDMS::loadCostMap( const string& costmapfile)
 	ifs_map.close();
 }
 
+void FrontierDetectorDMS::loadGridMap( const string& imgfilename, const string& mapinfofile)
+{
+	int nheight, nwidth ;
+	uint8_t value ;
+	float origx = 0;
+	float origy = 0;
+	float resolution ;
+
+	std::ifstream ifs_map(mapinfofile) ;
+	ifs_map >> m_robotpose.x >> m_robotpose.y >> origx >> origy >> nheight >> nwidth >> resolution;
+	m_gridmap.info.height = nheight ;
+	m_gridmap.info.width  = nwidth ;
+	m_gridmap.info.origin.position.x = origx ;
+	m_gridmap.info.origin.position.y = origy ;
+	m_gridmap.info.resolution = resolution ;
+
+	printf("%s\n", mapinfofile.c_str() );
+	printf("%f %f %f %f\n", m_robotpose.x, m_robotpose.y, origx, origy );
+
+	cv::Mat img = cv::imread(imgfilename);
+
+	printf("%d %d %d %d\n", nheight, nwidth, img.rows, img.cols );
+
+	for( int ridx=0; ridx < nheight; ridx++ )
+	{
+		for( int cidx=0; cidx < nwidth; cidx++ )
+		{
+			value = img.data[ ridx * nwidth + cidx ] ;
+
+			if( value == 127)
+				m_gridmap.data.push_back(-1);
+			else if(value == 0)
+				m_gridmap.data.push_back(0);
+			else
+				m_gridmap.data.push_back(100);
+		}
+	}
+	ifs_map.close();
+}
+
+void FrontierDetectorDMS::loadCostMap( const string& imgfilename, const string& mapinfofile)
+{
+	int nheight, nwidth ;
+	uint8_t value ;
+	float origx = 0;
+	float origy = 0;
+	float resolution ;
+
+	std::ifstream ifs_map(mapinfofile) ;
+	ifs_map >> m_robotpose.x >> m_robotpose.y >> origx >> origy >> nheight >> nwidth >> resolution;
+	m_globalcostmap.info.height = nheight ;
+	m_globalcostmap.info.width  = nwidth ;
+	m_globalcostmap.info.origin.position.x = origx ;
+	m_globalcostmap.info.origin.position.y = origy ;
+	m_globalcostmap.info.resolution = resolution ;
+
+	cv::Mat img = cv::imread(imgfilename);
+
+	for( int ridx=0; ridx < nheight; ridx++ )
+	{
+		for( int cidx=0; cidx < nwidth; cidx++ )
+		{
+			value = img.data[ ridx * nwidth + cidx ] ;
+
+			if( value == 127)
+				m_globalcostmap.data.push_back(-1);
+			else if(value == 0)
+				m_globalcostmap.data.push_back(0);
+			else
+				m_globalcostmap.data.push_back(100);
+		}
+	}
+	ifs_map.close();
+}
+
+
 void FrontierDetectorDMS::setCostMap(const string& costmapfile)
 {
 
@@ -176,7 +252,6 @@ void FrontierDetectorDMS::setGridMap(const string& gridmapfile)
 // mapcallback for dynamic mapsize (i.e for the cartographer)
 void FrontierDetectorDMS::processMap()
 {
-
 	float gmresolution ;
 	uint32_t gmheight, gmwidth;
 
@@ -198,7 +273,6 @@ void FrontierDetectorDMS::processMap()
 	cmheight=globalcostmap.info.height;
 	cmdata  =globalcostmap.data;
 
-
 	if( gmheight == 0 || gmwidth == 0
 		|| gmwidth  != cmwidth
 		|| gmheight != cmheight)
@@ -214,7 +288,7 @@ void FrontierDetectorDMS::processMap()
 	cv::Rect roi( m_nroi_origx, m_nroi_origy, gmwidth, gmheight );
 
 	m_uMapImgROI = m_uMapImg(roi);
-printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
+//printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 
 	for( int ii =0 ; ii < gmheight; ii++)
 	{
@@ -270,7 +344,6 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 	ffp::FrontPropagation oFP(img_padded); // image uchar
 	oFP.update(img_padded, cv::Point(0,0));
 	oFP.extractFrontierRegion( img_padded ) ;
-
 	cv::Mat img_frontiers = oFP.GetFrontierContour() ;
 
 	cv::Mat dst, img_labeled;
@@ -401,17 +474,17 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 		m_cands.points.push_back(p);
 //ROS_INFO("frontier cands: %f %f \n", p.x, p.y);
 	}
+printf(" voFrontierCands size: %d \n", voFrontierCands.size() );
 
 	// eliminate frontier points at obtacles
 	vector<size_t> valid_frontier_indexs;
 	if( globalcostmap.info.width > 0 )
 	{
-		//frontiers = eliminateSupriousFrontiers( m_globalcostmap, frontiers_cand, m_nROISize) ;
-		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
 		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
+		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
-			voFrontierCands[idx].SetFrontierFlag( 0, 0 );
+			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
 
 //		set<pointset, pointset> unreachable_frontiers;
 //		{
@@ -605,7 +678,7 @@ const int nnumpts = m_points.points.size();
 omp_set_num_threads(mn_numthreads);
 omp_init_lock(&m_mplock);
 
-int nrepeat = 10;
+int nrepeat = 1;
 
 //std::clock_t GPstartTime = clock();
 std::vector<geometry_msgs::PoseStamped> best_plan;
@@ -614,7 +687,7 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
 
-#pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot, tid, fptidx, start, goal ) shared( fupperbound )// agoal, fptidx )
+#pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot, tid, start, goal ) shared( fupperbound )// agoal, fptidx )
 {
 	//numthreads = mn_numthreads; //omp_get_num_threads() ;
 	//mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
