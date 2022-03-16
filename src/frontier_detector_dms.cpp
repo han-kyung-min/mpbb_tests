@@ -411,7 +411,7 @@ printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
 		m_oFrontierFilter.measureGridmapConfidence(m_gridmap, voFrontierCands);
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
-			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
+			voFrontierCands[idx].SetFrontierFlag( 0, 0 );
 
 //		set<pointset, pointset> unreachable_frontiers;
 //		{
