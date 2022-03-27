@@ -676,7 +676,7 @@ const int nnumpts = m_points.points.size();
 
 
 omp_set_num_threads(mn_numthreads);
-omp_init_lock(&m_mplock);
+//omp_init_lock(&m_mplock);
 
 int nrepeat = 1;
 
@@ -687,7 +687,7 @@ auto begin_time = std::chrono::high_resolution_clock::now();
 for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 {
 
-#pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot, tid, start, goal ) shared( fupperbound )// agoal, fptidx )
+#pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot, tid, start, goal ) //shared( fupperbound )// agoal, fptidx )
 {
 	//numthreads = mn_numthreads; //omp_get_num_threads() ;
 	//mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
@@ -707,7 +707,7 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 		//std::vector<geometry_msgs::PoseStamped> plan;
 //printf("done here 1\n");
 		//float fendpot;
-		bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
+		bool bplansuccess = o_gph.makePlan(start, goal, plan);
 //printf("done here 2\n");
 //printf("[success: %d] [tid %d:] processed %d th point (%f %f) to (%f %f) marked %f potential \n ",
 //										  bplansuccess, tid, idx,
@@ -716,20 +716,20 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 //path_plans[idx] = plan;
 		//gplansizes[idx] = plan.size();
 
-		if( fendpot < fupperbound )
-		{
-			//#pragma omp atomic write
-			omp_set_lock(&m_mplock);
-			fupperbound = fendpot; // set new bound;
-			omp_unset_lock(&m_mplock);
-			//best_plan = plan;
-		}
+//		if( fendpot < fupperbound )
+//		{
+//			//#pragma omp atomic write
+//			omp_set_lock(&m_mplock);
+//			fupperbound = fendpot; // set new bound;
+//			omp_unset_lock(&m_mplock);
+//			//best_plan = plan;
+//		}
 	}
 
 //	delete mpo_gph;
 }
 
-omp_destroy_lock(&m_mplock);
+//omp_destroy_lock(&m_mplock);
 
 } // end of repeatidx
 
