@@ -484,7 +484,7 @@ printf(" voFrontierCands size: %d \n", voFrontierCands.size() );
 		m_oFrontierFilter.measureCostmapConfidence(globalcostmap, voFrontierCands);
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
-			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
+			voFrontierCands[idx].SetFrontierFlag( 0, 0 );
 
 //		set<pointset, pointset> unreachable_frontiers;
 //		{
@@ -674,7 +674,7 @@ const int nnumpts = m_points.points.size();
 //	agoal[ii] = StampedPosefromSE2( fpoints[ii].x, fpoints[ii].y, 0.f );;
 //}
 
-
+mn_numthreads = 1;
 omp_set_num_threads(mn_numthreads);
 //omp_init_lock(&m_mplock);
 
