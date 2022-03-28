@@ -29,7 +29,7 @@ mp_cost_translation_table(NULL)
 	m_nROISize = 0;
 	m_nCorrectionWindowWidth = 0;
 	m_nlethal_cost_thr = 80;
-	float fgridmap_conf_thr = 0.6 ;
+	float fgridmap_conf_thr = 0.8; //0.6 ;
 	float fcostmap_conf_thr = 0.4;
 	m_nNumPyrDownSample = 0;
 
