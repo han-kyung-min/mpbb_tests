@@ -24,8 +24,8 @@ mp_cost_translation_table(NULL)
 	m_noccupancy_thr = 40;
 	m_fRobotRadius = 0.3f;
 	m_fResolution = 0.05f;
-	m_nGlobalMapWidth = 4000;
-	m_nGlobalMapHeight = 4000;
+	m_nGlobalMapWidth = static_cast<int>(GLOBAL_WIDTH);
+	m_nGlobalMapHeight = static_cast<int>(GLOBAL_HEIGHT);
 	m_nROISize = 0;
 	m_nScale = 1;
 	m_nCorrectionWindowWidth = 0;
@@ -182,7 +182,7 @@ void FrontierDetectorDMS::loadGridMap( const string& imgfilename, const string& 
 	printf("%s\n", mapinfofile.c_str() );
 	printf("%f %f %f %f\n", m_robotpose.x, m_robotpose.y, origx, origy );
 
-	cv::Mat img = cv::imread(imgfilename);
+	cv::Mat img = cv::imread(imgfilename,0);
 
 	printf("%d %d %d %d\n", nheight, nwidth, img.rows, img.cols );
 
@@ -219,7 +219,7 @@ void FrontierDetectorDMS::loadCostMap( const string& imgfilename, const string& 
 	m_globalcostmap.info.origin.position.y = origy ;
 	m_globalcostmap.info.resolution = resolution ;
 
-	cv::Mat img = cv::imread(imgfilename);
+	cv::Mat img = cv::imread(imgfilename,0);
 
 	for( int ridx=0; ridx < nheight; ridx++ )
 	{
