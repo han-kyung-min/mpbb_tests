@@ -24,8 +24,8 @@ mp_cost_translation_table(NULL)
 	m_noccupancy_thr = 40;
 	m_fRobotRadius = 0.3f;
 	m_fResolution = 0.05f;
-	m_nGlobalMapWidth = 4000;
-	m_nGlobalMapHeight = 4000;
+	m_nGlobalMapWidth  = static_cast<int>(GLOBAL_HEIGHT);
+	m_nGlobalMapHeight = static_cast<int>(GLOBAL_WIDTH );
 	m_nROISize = 0;
 	m_nScale = 1;
 	m_nCorrectionWindowWidth = 0;
@@ -485,13 +485,6 @@ printf(" voFrontierCands size: %d \n", voFrontierCands.size() );
 
 		for(size_t idx=0; idx < voFrontierCands.size(); idx++)
 			voFrontierCands[idx].SetFrontierFlag( fcm_conf, fgm_conf );
-
-//		set<pointset, pointset> unreachable_frontiers;
-//		{
-//			//const std::unique_lock<mutex> lock(mutex_unreachable_points) ;
-//			unreachable_frontiers = m_unreachable_frontier_set ;
-//			//m_oFrontierFilter.computeReachability( unreachable_frontiers, voFrontierCands );
-//		}
 	}
 	else
 	{
@@ -588,9 +581,11 @@ for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 
 		pmap[idx] = val < 0 ? 255 : mp_cost_translation_table[val];
 //ROS_INFO("idx val tablev : %d %d %u\t", idx, val, mp_cost_translation_table[val] );
-//printf("(%d %d)\t", pmap[idx], mp_cost_translation_table[val]);
+//printf("(%d %d): (%d %d)\t",ridx, cidx, pmap[idx], mp_cost_translation_table[val]);
 	}
 }
+
+//exit(-1);
 
 //ROS_INFO("mpo_costmap has been set\n");
 ///////////////////////////////////////////////////////////////////////
@@ -689,10 +684,9 @@ for(int repeatidx=0; repeatidx < nrepeat; repeatidx++)
 
 #pragma omp parallel firstprivate( o_gph, fpoints, plan, fendpot, tid, start, goal ) shared( fupperbound )// agoal, fptidx )
 {
-	//numthreads = mn_numthreads; //omp_get_num_threads() ;
-	//mpo_gph = new GlobalPlanningHandler( *mpo_costmap );
+	//GlobalPlanningHandler o_gph( *mpo_costmap );
 
-	#pragma omp for // schedule(dynamic)
+	#pragma omp for schedule(dynamic)
 	for (fptidx=0; fptidx < nnumpts; fptidx++)
 	{
 		tid = omp_get_thread_num() ;

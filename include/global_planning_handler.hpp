@@ -49,6 +49,7 @@ public:
      */
     double getPointPotential(const geometry_msgs::Point& world_point);
 
+
     bool getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) ;
 
 //    void setCostmap( uint8_t* cmap, unsigned int size_x, unsigned int size_y, float resolution,
@@ -56,6 +57,9 @@ public:
 
     void setCostmap( vector<signed char> cmap, unsigned int size_x, unsigned int size_y, float resolution,
     		float origin_x, float origin_y );
+
+    costmap_2d::Costmap2D getCostmap() const { return m_costmap; }
+
 private:
 
     inline double sq_distance(const geometry_msgs::PoseStamped& p1, const geometry_msgs::PoseStamped& p2){
