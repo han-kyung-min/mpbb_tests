@@ -27,7 +27,6 @@ mp_cost_translation_table(NULL)
 	m_nGlobalMapWidth  = static_cast<int>(GLOBAL_HEIGHT);
 	m_nGlobalMapHeight = static_cast<int>(GLOBAL_WIDTH );
 	m_nROISize = 0;
-	m_nScale = 1;
 	m_nCorrectionWindowWidth = 0;
 	m_nlethal_cost_thr = 80;
 	float fgridmap_conf_thr = 0.6 ;
@@ -180,27 +179,42 @@ void FrontierDetectorDMS::loadGridMap( const string& imgfilename, const string& 
 	m_gridmap.info.resolution = resolution ;
 
 	printf("%s\n", mapinfofile.c_str() );
-	printf("%f %f %f %f\n", m_robotpose.x, m_robotpose.y, origx, origy );
+	printf("gmapinfo:(rx ry ox oy nW nH) %f %f %f %f %d %d\n", m_robotpose.x, m_robotpose.y, origx, origy, nwidth, nheight );
 
-	cv::Mat img = cv::imread(imgfilename);
+	cv::Mat img = cv::imread(imgfilename,0);
 
-	printf("%d %d %d %d\n", nheight, nwidth, img.rows, img.cols );
+	printf("%d %d %d %d  %d\n", nheight, nwidth, img.rows, img.cols, img.channels() );
 
 	for( int ridx=0; ridx < nheight; ridx++ )
 	{
 		for( int cidx=0; cidx < nwidth; cidx++ )
 		{
-			value = img.data[ ridx * nwidth + cidx ] ;
+			value = img.data[ ridx * nwidth + cidx ] ;//img.at<uchar>(ridx, cidx) ;
 
 			if( value == 127)
+			{
 				m_gridmap.data.push_back(-1);
+			}
 			else if(value == 0)
+			{
 				m_gridmap.data.push_back(0);
+			}
 			else
+			{
 				m_gridmap.data.push_back(100);
+			}
 		}
 	}
 	ifs_map.close();
+
+
+//	cv::Mat tmpimg = cv::Mat(nheight, nwidth, CV_8U);
+//	memcpy(&tmpimg.data[0], &m_gridmap.data[0], sizeof(char)*nheight * nwidth );
+//	cv::namedWindow("cped gm", 1);
+//	cv::imshow("cped gm",tmpimg);
+//	cv::namedWindow("org im", 1);
+//	cv::imshow("org im",img);
+//	cv::waitKey(0);
 }
 
 void FrontierDetectorDMS::loadCostMap( const string& imgfilename, const string& mapinfofile)
@@ -219,7 +233,7 @@ void FrontierDetectorDMS::loadCostMap( const string& imgfilename, const string& 
 	m_globalcostmap.info.origin.position.y = origy ;
 	m_globalcostmap.info.resolution = resolution ;
 
-	cv::Mat img = cv::imread(imgfilename);
+	cv::Mat img = cv::imread(imgfilename,0);
 
 	for( int ridx=0; ridx < nheight; ridx++ )
 	{
@@ -282,13 +296,14 @@ void FrontierDetectorDMS::processMap()
 				cmheight, cmwidth);
 		return;
 	}
-	m_nroi_origx = m_nGlobalMapCentX ; // - (int)round( m_gridmap.info.origin.position.x / m_fResolution ) ;
-	m_nroi_origy = m_nGlobalMapCentY ; //- (int)round( m_gridmap.info.origin.position.y / m_fResolution ) ;
+	m_nroi_origx = m_nGlobalMapCentX; //- (int)( m_gridmap.info.origin.position.x / m_fResolution ) ;
+	m_nroi_origy = m_nGlobalMapCentY; //- (int)( m_gridmap.info.origin.position.y / m_fResolution ) ;
 
 	cv::Rect roi( m_nroi_origx, m_nroi_origy, gmwidth, gmheight );
 
 	m_uMapImgROI = m_uMapImg(roi);
-//printf("roi: %d %d \n", m_uMapImgROI.rows, m_uMapImgROI.cols);
+printf("roi: %d %d %d %d \n", m_nroi_origx, m_nroi_origy, gmwidth, gmheight);
+
 
 	for( int ii =0 ; ii < gmheight; ii++)
 	{

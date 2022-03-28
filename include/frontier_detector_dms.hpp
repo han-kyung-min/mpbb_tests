@@ -25,8 +25,8 @@
 //#define FD_DEBUG_MODE
 #define ROI_OFFSET (10)
 #define DIST_HIGH  (1.0e8)
-#define GLOBAL_HEIGHT (40000)
-#define GLOBAL_WIDTH  (40000)
+#define GLOBAL_HEIGHT (12000)
+#define GLOBAL_WIDTH  (12000)
 
 
 namespace autoexplorer
