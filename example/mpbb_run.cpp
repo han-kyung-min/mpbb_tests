@@ -31,9 +31,9 @@ int main(int argc, char** argv)
     //front_detector_dms.SetNumThreads(numthreads);
 
     string homedir = getenv("HOME");
-    string costmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00390.png" ;
-    string gridmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00390.png" ;
-    string mapinfofile    = homedir+"/results/autoexploration/tmp/deutschemuseum/mapinfo00390.txt";
+    string costmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00030.png" ;
+    string gridmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00030.png" ;
+    string mapinfofile    = homedir+"/results/autoexploration/tmp/deutschemuseum/mapinfo00030.txt";
     front_detector_dms.loadGridMap(gridmapimgfile, mapinfofile);
 printf("gridmap loaded\n");
     front_detector_dms.loadCostMap(costmapimgfile, mapinfofile);
