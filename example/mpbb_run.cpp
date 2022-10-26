@@ -19,26 +19,29 @@ int main(int argc, char** argv)
 
     if( argc != 2)
     {
-        printf("args: %s <numthreads> \n", argv[0]);
+        printf("args: %s <frameidx> \n", argv[0]);
         return -1;
     }
     
-  int numthreads = atoi(argv[1]);
+  int nframeidx = atoi(argv[1]);
 
-    FrontierDetectorDMS front_detector_dms(numthreads);
+    FrontierDetectorDMS front_detector_dms(nframeidx);
 
     // load gridmap and costmap
     //front_detector_dms.SetNumThreads(numthreads);
 
     string homedir = getenv("HOME");
-    string costmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00030.png" ;
-    string gridmapimgfile = homedir+"/results/autoexploration/tmp/deutschemuseum/outimg00030.png" ;
-    string mapinfofile    = homedir+"/results/autoexploration/tmp/deutschemuseum/mapinfo00030.txt";
-    front_detector_dms.loadGridMap(gridmapimgfile, mapinfofile);
-printf("gridmap loaded\n");
-    front_detector_dms.loadCostMap(costmapimgfile, mapinfofile);
+    string strcostmap  = (boost::format("/home/hankm/results/autoexploration/costmap%05d.txt")  % nframeidx ).str() ;
+    string strfrontier = (boost::format("/home/hankm/results/autoexploration/frontier%05d.txt") % nframeidx ).str() ;
+    string mapinfofile = (boost::format("/home/hankm/results/autoexploration/cminfo%05d.txt")   % nframeidx ).str() ;
+
+    front_detector_dms.loadCostMap(strcostmap, mapinfofile);
 printf("costmap loaded\n");
-    front_detector_dms.processMap() ;
+
+	nav_msgs::Path msg_frontiers;
+	front_detector_dms.loadFrontierPoints( strfrontier, msg_frontiers  ) ;
+
+    front_detector_dms.planToFrontierPoints( msg_frontiers  ) ;
 
   return 0;
 }

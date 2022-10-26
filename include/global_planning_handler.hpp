@@ -1,14 +1,24 @@
-/*
- * global_planning_handler.hpp
- *
- *  Created on: Nov 12, 2021
- *  * Original Author: 	Eitan Marder-Eppstein
- *    Modified by: 		hankm
- */
+/*********************************************************************
+*  Copyright (c) 2022, Ewha Graphics Lab
+*
+* Autoexplorer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* Autoexplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with Autoexplorer.
+* If not, see <http://www.gnu.org/licenses/>.
+
+*      Author: Kyungmin Han (hankm@ewha.ac.kr)
+*/
 
 #ifndef INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 #define INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 
+#include <ros/ros.h>
 #include <nav_fn/navfn.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -17,6 +27,7 @@
 #include <vector>
 #include <nav_core/base_global_planner.h>
 #include <nav_msgs/GetPlan.h>
+//#include <navfn/potarr_point.h>
 #include <nav_fn/potarr_point.h>
 
 namespace autoexplorer
@@ -29,11 +40,11 @@ class GlobalPlanningHandler
 
 public:
 	GlobalPlanningHandler( );
-	GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap );
+	GlobalPlanningHandler( costmap_2d::Costmap2D &ocostmap,  const std::string& worldframe, const std::string& baseframe );
 	virtual ~GlobalPlanningHandler();
 
 	void initialization() ;
-	void reinitialization( ); //costmap_2d::Costmap2D* pocostmap2d ) ;
+	void reinitialization(  ) ;
 
 	bool makePlan( const geometry_msgs::PoseStamped start, const geometry_msgs::PoseStamped goal,
 			  	  std::vector<geometry_msgs::PoseStamped>& plan );
@@ -49,7 +60,6 @@ public:
      */
     double getPointPotential(const geometry_msgs::Point& world_point);
 
-
     bool getPlanFromPotential(const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) ;
 
 //    void setCostmap( uint8_t* cmap, unsigned int size_x, unsigned int size_y, float resolution,
@@ -57,9 +67,6 @@ public:
 
     void setCostmap( vector<signed char> cmap, unsigned int size_x, unsigned int size_y, float resolution,
     		float origin_x, float origin_y );
-
-    costmap_2d::Costmap2D getCostmap() const { return m_costmap; }
-
 private:
 
     inline double sq_distance(const geometry_msgs::PoseStamped& p1, const geometry_msgs::PoseStamped& p2){
@@ -74,17 +81,20 @@ private:
     void clearRobotCell(const geometry_msgs::PoseStamped& global_pose, unsigned int mx, unsigned int my);
 
 	// global planner and costmap related variables
+    //costmap_2d::Costmap2D* mp_costmap;
     costmap_2d::Costmap2D m_costmap;
+
 	//boost::shared_ptr<costmap_2d::Costmap2D> mp_costmap;
 
 //	pluginlib::ClassLoader<nav_core::BaseGlobalPlanner> bgp_loader_;
+
 //    tf2_ros::Buffer& tf_;
 
     boost::shared_ptr<navfn::NavFn> planner_;
     std::string robot_base_frame_, global_frame_;
 
     float mf_tolerance ;
-//    boost::mutex m_mutex;
+    //boost::mutex m_mutex;
     bool mb_initialized ;
     bool mb_allow_unknown;
     bool mb_visualize_potential ;

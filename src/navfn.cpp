@@ -41,9 +41,10 @@
 //
 // Path calc has sanity check that it succeeded
 //
-
+// modified by Kyungmin Han (hankm@ewha.ac.kr)
 
 #include <nav_fn/navfn.h>
+#include <ros/console.h>
 
 namespace navfn {
 
@@ -81,6 +82,11 @@ namespace navfn {
 
       // path
       int len = nav->calcPath(nplan);
+
+      if (len > 0)			// found plan
+        ROS_DEBUG("[NavFn] Path found, %d steps\n", len);
+      else
+        ROS_DEBUG("[NavFn] No path found\n");
 
       if (len > 0)
       {
@@ -168,6 +174,7 @@ namespace navfn {
     {
       goal[0] = g[0];
       goal[1] = g[1];
+      ROS_DEBUG("[NavFn] Setting goal to %d,%d\n", goal[0], goal[1]);
     }
 
   void
@@ -175,6 +182,19 @@ namespace navfn {
     {
       start[0] = g[0];
       start[1] = g[1];
+      ROS_DEBUG("[NavFn] Setting start to %d,%d\n", start[0], start[1]);
+
+      // reset cost arround the goal (by hkm)
+//      COSTTYPE *cm = costarr;
+//      cm[ g[0] + g[1]*nx ] = 0 ;
+//
+//      for(int r=-2; r < 2; r++)
+//      {
+//    	  for(int c=-2; c < 2; c++)
+//    	  {
+//    		  cm[ g[0] + c + (g[1] + r)*nx ] = 0 ;
+//    	  }
+//      }
     }
 
   //
@@ -184,6 +204,7 @@ namespace navfn {
   void
     NavFn::setNavArr(int xs, int ys)
     {
+      ROS_DEBUG("[NavFn] Array is %d x %d\n", xs, ys);
 
       nx = xs;
       ny = ys;
@@ -317,10 +338,12 @@ namespace navfn {
 
       if (len > 0)			// found plan
       {
+        ROS_DEBUG("[NavFn] Path found, %d steps\n", len);
         return true;
       }
       else
       {
+        ROS_DEBUG("[NavFn] No path found\n");
         return false;
       }
 
@@ -349,10 +372,12 @@ namespace navfn {
 
       if (len > 0)			// found plan
       {
+        //ROS_WARN("[NavFn Astar] Path found, %d steps\n", len);
         return true;
       }
       else
       {
+        //ROS_ERROR("[NavFn Astar] No path found\n");
         return false;
       }
     }
@@ -665,6 +690,8 @@ namespace navfn {
       }
 
     }
+
+
 
   //
   // main propagation function
@@ -993,7 +1020,7 @@ namespace navfn {
 
         if (stc < nx || stc > ns-nx) // would be out of bounds
         {
-          ///ROS_DEBUG("[PathCalc] Out of bounds");
+          ROS_DEBUG("[PathCalc] Out of bounds");
           return 0;
         }
 
@@ -1007,6 +1034,7 @@ namespace navfn {
             pathx[npath-1] == pathx[npath-3] &&
             pathy[npath-1] == pathy[npath-3] )
         {
+          ROS_DEBUG("[PathCalc] oscillation detected, attempting fix.");
           oscillation_detected = true;
         }
 
@@ -1025,7 +1053,7 @@ namespace navfn {
             potarr[stcpx-1] >= POT_HIGH ||
             oscillation_detected)
         {
-//          ROS_DEBUG("[Path] Pot fn boundary, following grid (%0.1f/%d)", potarr[stc], npath);
+          ROS_DEBUG("[Path] Pot fn boundary, following grid (%0.1f/%d)", potarr[stc], npath);
           // check eight neighbors to find the lowest
           int minc = stc;
           int minp = potarr[stc];
@@ -1049,8 +1077,12 @@ namespace navfn {
           dx = 0;
           dy = 0;
 
+          ROS_DEBUG("[Path] Pot: %0.1f  pos: %0.1f,%0.1f",
+              potarr[stc], pathx[npath-1], pathy[npath-1]);
+
           if (potarr[stc] >= POT_HIGH)
           {
+            ROS_DEBUG("[PathCalc] No path found, high potential");
             //savemap("navfn_highpot");
 //savemap("/home/hankm/results/autoexploration/navfn_highpot");
             return 0;
@@ -1085,6 +1117,7 @@ namespace navfn {
           // check for zero gradient, failed
           if (x == 0.0 && y == 0.0)
           {
+            ROS_DEBUG("[PathCalc] Zero gradient");	  
             return 0;
           }
 
@@ -1106,6 +1139,7 @@ namespace navfn {
       }
 
       //  return npath;			// out of cycles, return failure
+      ROS_DEBUG("[PathCalc] No path found, path too long");
       //savemap("navfn_pathlong");
       return 0;			// out of cycles, return failure
     }
@@ -1193,6 +1227,8 @@ namespace navfn {
     NavFn::savemap(const char *fname)
     {
       char fn[4096];
+
+      ROS_DEBUG("[NavFn] Saving costmap and start/goal points");
       // write start and goal points
       sprintf(fn,"%s.txt",fname);
       FILE *fp = fopen(fn,"w");

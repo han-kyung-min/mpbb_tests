@@ -19,6 +19,7 @@
 #include <visualization_msgs/Marker.h>
 #include <random>
 #include <chrono>
+#include <boost/format.hpp>
 //#include "std_msgs/Empty.h"
 
 //#define OCCUPANCY_THR (60)
@@ -45,6 +46,9 @@ public:
 	void loadGridMap( const string& imgfilename, const string& mapinfofile) ;
 	void loadCostMap( const string& imgfilename, const string& mapinfofile);
 
+	void loadFrontierPoints(   const string& strfrontierfilename, nav_msgs::Path& frontierpoints  ) ;
+	void planToFrontierPoints( const nav_msgs::Path& msg_frontierpoints   );
+
 	void setCostMap(const string& costmapfile);
 	void setGridMap(const string& gridmapfile);
 	void processMap() ;
@@ -62,9 +66,12 @@ protected:
 
 	visualization_msgs::Marker m_points, m_cands;
 	cv::Point2f m_robotpose ;
+	geometry_msgs::PoseStamped m_msg_robotpose ;
 
 	int mn_numthreads;
 	int m_nglobalcostmapidx ;
+	int m_nbestidx ;
+
 	string m_str_debugpath ;
 	string m_str_inputparams ;
 

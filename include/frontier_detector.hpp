@@ -109,8 +109,8 @@ public:
 			pyrDown(uUnkn, uUnkn, cv::Size(uUnkn.rows/2, uUnkn.cols/2));
 		}
 
-		cv::threshold(uOccu, uOccu, 0, ffp::MapStatus::OCCUPIED, CV_THRESH_BINARY) ;
-		cv::threshold(uUnkn, uUnkn, 0, ffp::MapStatus::UNKNOWN, CV_THRESH_BINARY) ;
+		cv::threshold(uOccu, uOccu, 0, ffp::MapStatus::OCCUPIED, cv::THRESH_BINARY) ;
+		cv::threshold(uUnkn, uUnkn, 0, ffp::MapStatus::UNKNOWN, cv::THRESH_BINARY) ;
 		uImage = uOccu + uUnkn ;
 	}
 

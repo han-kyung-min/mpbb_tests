@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "../bin/mpbb_run"
+  "../bin/mpbb_run.pdb"
   "CMakeFiles/mpbb_run.dir/example/mpbb_run.cpp.o"
   "CMakeFiles/mpbb_run.dir/src/costmap_2d/src/array_parser.cpp.o"
   "CMakeFiles/mpbb_run.dir/src/costmap_2d/src/costmap_2d.cpp.o"
@@ -9,8 +11,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/mpbb_run.dir/src/global_planning_handler.cpp.o"
   "CMakeFiles/mpbb_run.dir/src/navfn.cpp.o"
   "CMakeFiles/mpbb_run.dir/src/thread_utility_meas.cpp.o"
-  "../bin/mpbb_run.pdb"
-  "../bin/mpbb_run"
 )
 
 # Per-language clean rules from dependency scanning.
