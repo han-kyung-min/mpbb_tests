@@ -25,7 +25,7 @@
 //#define OCCUPANCY_THR (60)
 //#define FD_DEBUG_MODE
 #define ROI_OFFSET (10)
-#define DIST_HIGH  (1.0e8)
+#define DIST_HIGH  (1.0e10)
 #define GLOBAL_HEIGHT (12000)
 #define GLOBAL_WIDTH  (12000)
 
@@ -44,10 +44,10 @@ public:
 	void loadGridMap( const string& filename);
 	void loadCostMap( const string& filename);
 	void loadGridMap( const string& imgfilename, const string& mapinfofile) ;
-	void loadCostMap( const string& imgfilename, const string& mapinfofile);
+	void loadCostMap( const string& mapfilename, const string& mapinfofile);
 
 	void loadFrontierPoints(   const string& strfrontierfilename, nav_msgs::Path& frontierpoints  ) ;
-	void planToFrontierPoints( const nav_msgs::Path& msg_frontierpoints   );
+	void planToFrontierPoints( const int nframeidx, const nav_msgs::Path& msg_frontierpoints   );
 
 	void setCostMap(const string& costmapfile);
 	void setGridMap(const string& gridmapfile);

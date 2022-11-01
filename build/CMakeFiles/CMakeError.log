@@ -1,21 +1,21 @@
 Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
 Change Dir: /home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_44399/fast && /usr/bin/make -f CMakeFiles/cmTC_44399.dir/build.make CMakeFiles/cmTC_44399.dir/build
+Run Build Command(s):/usr/bin/make cmTC_36e51/fast && /usr/bin/make -f CMakeFiles/cmTC_36e51.dir/build.make CMakeFiles/cmTC_36e51.dir/build
 make[1]: Entering directory '/home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_44399.dir/src.c.o
-/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_44399.dir/src.c.o   -c /home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_44399
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_44399.dir/link.txt --verbose=1
-/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_44399.dir/src.c.o  -o cmTC_44399 
-/usr/bin/ld: CMakeFiles/cmTC_44399.dir/src.c.o: in function `main':
+Building C object CMakeFiles/cmTC_36e51.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_36e51.dir/src.c.o   -c /home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_36e51
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_36e51.dir/link.txt --verbose=1
+/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_36e51.dir/src.c.o  -o cmTC_36e51 
+/usr/bin/ld: CMakeFiles/cmTC_36e51.dir/src.c.o: in function `main':
 src.c:(.text+0x46): undefined reference to `pthread_create'
 /usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
 /usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_44399.dir/build.make:87: cmTC_44399] Error 1
+make[1]: *** [CMakeFiles/cmTC_36e51.dir/build.make:87: cmTC_36e51] Error 1
 make[1]: Leaving directory '/home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_44399/fast] Error 2
+make: *** [Makefile:121: cmTC_36e51/fast] Error 2
 
 
 Source file was:
@@ -41,18 +41,18 @@ int main(void)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_188d7/fast && /usr/bin/make -f CMakeFiles/cmTC_188d7.dir/build.make CMakeFiles/cmTC_188d7.dir/build
+Run Build Command(s):/usr/bin/make cmTC_efb22/fast && /usr/bin/make -f CMakeFiles/cmTC_efb22.dir/build.make CMakeFiles/cmTC_efb22.dir/build
 make[1]: Entering directory '/home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_188d7.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_188d7.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
-Linking C executable cmTC_188d7
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_188d7.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_188d7.dir/CheckFunctionExists.c.o  -o cmTC_188d7  -lpthreads 
+Building C object CMakeFiles/cmTC_efb22.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_efb22.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_efb22
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_efb22.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_efb22.dir/CheckFunctionExists.c.o  -o cmTC_efb22  -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_188d7.dir/build.make:87: cmTC_188d7] Error 1
+make[1]: *** [CMakeFiles/cmTC_efb22.dir/build.make:87: cmTC_efb22] Error 1
 make[1]: Leaving directory '/home/hankm/binary_ws/mpbb_tests/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_188d7/fast] Error 2
+make: *** [Makefile:121: cmTC_efb22/fast] Error 2
 
 
 

@@ -44,7 +44,7 @@
 // modified by Kyungmin Han (hankm@ewha.ac.kr)
 
 #include <nav_fn/navfn.h>
-#include <ros/console.h>
+//#include <ros/console.h>
 
 namespace navfn {
 
@@ -84,9 +84,9 @@ namespace navfn {
       int len = nav->calcPath(nplan);
 
       if (len > 0)			// found plan
-        ROS_DEBUG("[NavFn] Path found, %d steps\n", len);
+        printf("[NavFn] Path found, %d steps\n", len);
       else
-        ROS_DEBUG("[NavFn] No path found\n");
+        printf("[NavFn] No path found\n");
 
       if (len > 0)
       {
@@ -174,7 +174,7 @@ namespace navfn {
     {
       goal[0] = g[0];
       goal[1] = g[1];
-      ROS_DEBUG("[NavFn] Setting goal to %d,%d\n", goal[0], goal[1]);
+      //printf("[NavFn] Setting goal to %d,%d\n", goal[0], goal[1]);
     }
 
   void
@@ -182,7 +182,7 @@ namespace navfn {
     {
       start[0] = g[0];
       start[1] = g[1];
-      ROS_DEBUG("[NavFn] Setting start to %d,%d\n", start[0], start[1]);
+      //printf("[NavFn] Setting start to %d,%d\n", start[0], start[1]);
 
       // reset cost arround the goal (by hkm)
 //      COSTTYPE *cm = costarr;
@@ -204,7 +204,7 @@ namespace navfn {
   void
     NavFn::setNavArr(int xs, int ys)
     {
-      ROS_DEBUG("[NavFn] Array is %d x %d\n", xs, ys);
+      //printf("[NavFn] Array is %d x %d\n", xs, ys);
 
       nx = xs;
       ny = ys;
@@ -312,7 +312,7 @@ namespace navfn {
 			// values in range 0 to 252 -> values from COST_NEUTRAL to COST_OBS_ROS.
 			*cm = COST_OBS;
 			int v = *cmap;
-			if (v < COST_OBS_ROS-2 ) // 251 ~ 254  ==> OBS
+			if (v < COST_OBS_ROS ) // 251 ~ 254  ==> OBS
 			{
 			  *cm = 50;
 			}
@@ -338,12 +338,12 @@ namespace navfn {
 
       if (len > 0)			// found plan
       {
-        ROS_DEBUG("[NavFn] Path found, %d steps\n", len);
+        printf("[NavFn] Path found, %d steps\n", len);
         return true;
       }
       else
       {
-        ROS_DEBUG("[NavFn] No path found\n");
+        printf("[NavFn] No path found\n");
         return false;
       }
 
@@ -392,7 +392,7 @@ namespace navfn {
 //mofs_astarlog = std::ofstream("/home/hankm/results/autoexploration/astar_log.txt");
 //mofs_astarlog << start[0] << " " << start[1] << " " << goal[0] << " " << goal[1] << std::endl;
 
-//ROS_DEBUG("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
+//printf("[tid %d] propagating Astar from (%f %f) to (%f %f)\n", tid, start[0], start[1], goal[0], goal[1]);
 
       // calculate the nav fn and path
 	  bool bsuccess = propNavFnBoundedAstar(tid, nx*ny, fupperbound, fendpot);
@@ -761,7 +761,7 @@ namespace navfn {
             break;
       }
 
-      //ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+      //printf("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
        //   cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
       if (cycle < cycles) return true; // finished up here
@@ -814,7 +814,7 @@ namespace navfn {
         pb = curP; 
         i = curPe;
 
-        float fcurrpot = POT_HIGH;
+        float fcurrpot = potarr[*curP];
         float fminpot  = POT_HIGH;
         while (i-- > 0)
         {
@@ -852,7 +852,7 @@ namespace navfn {
 
       last_path_cost_ = potarr[startCell];
 
-     // ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+     // printf("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
      //     cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
 
@@ -897,8 +897,8 @@ namespace navfn {
         // process current priority buffer
         pb = curP;
         i = curPe;
-        float fcurpot = POT_HIGH;
-        float fminpot = POT_HIGH;
+        float fcurpot = potarr[*curP];
+        float fminpot = potarr[*curP];
         while (i-- > 0)
         {
           updateCellAstar(*pb++, fcurpot);
@@ -914,7 +914,7 @@ namespace navfn {
 		if( fcurrnodepot > fboundpot + COST_NEUTRAL )
 		{
 //mofs_astarlog << "aborting condition detected " << std::endl;
-//ROS_INFO("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
+//printf("[tid:%d] thread detected that the pot of currnode (%f) > bound (%f)\n", tid, fcurrnodepot, fboundpot);
 			break;
 		}
 
@@ -954,7 +954,7 @@ namespace navfn {
       last_path_cost_ = potarr[startCell];
 //mofs_astarlog << "last_path_cost: " << potarr[startCell] << std::endl;
 
-    //  ROS_DEBUG("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
+    //  printf("[NavFn] Used %d cycles, %d cells visited (%d%%), priority buf max %d\n",
     //      cycle,nc,(int)((nc*100.0)/(ns-nobs)),nwv);
 
       if (potarr[startCell] < POT_HIGH) return true; // finished up here
@@ -1020,7 +1020,7 @@ namespace navfn {
 
         if (stc < nx || stc > ns-nx) // would be out of bounds
         {
-          ROS_DEBUG("[PathCalc] Out of bounds");
+          printf("[PathCalc] Out of bounds");
           return 0;
         }
 
@@ -1034,7 +1034,7 @@ namespace navfn {
             pathx[npath-1] == pathx[npath-3] &&
             pathy[npath-1] == pathy[npath-3] )
         {
-          ROS_DEBUG("[PathCalc] oscillation detected, attempting fix.");
+          printf("[PathCalc] oscillation detected, attempting fix.");
           oscillation_detected = true;
         }
 
@@ -1053,7 +1053,7 @@ namespace navfn {
             potarr[stcpx-1] >= POT_HIGH ||
             oscillation_detected)
         {
-          ROS_DEBUG("[Path] Pot fn boundary, following grid (%0.1f/%d)", potarr[stc], npath);
+	 // printf("[Path] Pot fn boundary, following grid (%0.1f/%d) \n", potarr[stc], npath);
           // check eight neighbors to find the lowest
           int minc = stc;
           int minp = potarr[stc];
@@ -1077,12 +1077,12 @@ namespace navfn {
           dx = 0;
           dy = 0;
 
-          ROS_DEBUG("[Path] Pot: %0.1f  pos: %0.1f,%0.1f",
-              potarr[stc], pathx[npath-1], pathy[npath-1]);
+//          printf("[Path] Pot: %0.1f  pos: %0.1f,%0.1f",
+//              potarr[stc], pathx[npath-1], pathy[npath-1]);
 
           if (potarr[stc] >= POT_HIGH)
           {
-            ROS_DEBUG("[PathCalc] No path found, high potential");
+            printf("[PathCalc] No path found, high potential");
             //savemap("navfn_highpot");
 //savemap("/home/hankm/results/autoexploration/navfn_highpot");
             return 0;
@@ -1109,7 +1109,7 @@ namespace navfn {
           float y = (1.0-dy)*y1 + dy*y2; // interpolated y
 
           // show gradients
-//          ROS_DEBUG("[Path] %0.2f,%0.2f  %0.2f,%0.2f  %0.2f,%0.2f  %0.2f,%0.2f; final x=%.3f, y=%.3f\n",
+//          printf("[Path] %0.2f,%0.2f  %0.2f,%0.2f  %0.2f,%0.2f  %0.2f,%0.2f; final x=%.3f, y=%.3f\n",
 //                    gradx[stc], grady[stc], gradx[stc+1], grady[stc+1],
 //                    gradx[stcnx], grady[stcnx], gradx[stcnx+1], grady[stcnx+1],
 //                    x, y);
@@ -1117,7 +1117,7 @@ namespace navfn {
           // check for zero gradient, failed
           if (x == 0.0 && y == 0.0)
           {
-            ROS_DEBUG("[PathCalc] Zero gradient");	  
+            printf("[PathCalc] Zero gradient");
             return 0;
           }
 
@@ -1139,7 +1139,7 @@ namespace navfn {
       }
 
       //  return npath;			// out of cycles, return failure
-      ROS_DEBUG("[PathCalc] No path found, path too long");
+      printf("[PathCalc] No path found, path too long");
       //savemap("navfn_pathlong");
       return 0;			// out of cycles, return failure
     }
@@ -1228,7 +1228,7 @@ namespace navfn {
     {
       char fn[4096];
 
-      ROS_DEBUG("[NavFn] Saving costmap and start/goal points");
+      //printf("[NavFn] Saving costmap and start/goal points");
       // write start and goal points
       sprintf(fn,"%s.txt",fname);
       FILE *fp = fopen(fn,"w");

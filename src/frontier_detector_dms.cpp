@@ -75,9 +75,10 @@ mp_cost_translation_table(NULL)
 		}
 	}
 
-	m_ofs_time = ofstream(m_str_debugpath+"/planning_time.txt");
+	printf("world/map: %s %s \n", m_worldFrameId.c_str(), m_baseFrameId.c_str());
 
-	string str_filepath = m_str_debugpath+"/threadutility.txt";
+	//m_ofs_time = ofstream(m_str_debugpath+"/planning_time.txt");
+	string str_filepath = "/home/hankm/results/autoexploration/mpbb/threadutility.txt";
 	mp_threadutil = new ThreadUtilityMeas(mn_numthreads, str_filepath);
 
 }
@@ -98,16 +99,16 @@ cv::Point2f FrontierDetectorDMS::gridmap2world( cv::Point img_pt_roi  )
 	// img_x = (gridmap_x - gridmap.info.origin.position.x) / gridmap.info.resolution
 	// img_y = (gridmap_y - gridmap.info.origin.position.y) / gridmap.info.resolution
 
-	float fgx =  static_cast<float>(img_pt_roi.x) * m_fResolution + m_gridmap.info.origin.position.x  ;
-	float fgy =  static_cast<float>(img_pt_roi.y) * m_fResolution + m_gridmap.info.origin.position.y  ;
+	float fgx =  static_cast<float>(img_pt_roi.x) * m_fResolution + m_globalcostmap.info.origin.position.x  ;
+	float fgy =  static_cast<float>(img_pt_roi.y) * m_fResolution + m_globalcostmap.info.origin.position.y  ;
 
 	return cv::Point2f( fgx, fgy );
 }
 
 cv::Point FrontierDetectorDMS::world2gridmap( cv::Point2f grid_pt)
 {
-	float fx = (grid_pt.x - m_gridmap.info.origin.position.x) / m_gridmap.info.resolution ;
-	float fy = (grid_pt.y - m_gridmap.info.origin.position.y) / m_gridmap.info.resolution ;
+	float fx = (grid_pt.x - m_globalcostmap.info.origin.position.x) / m_globalcostmap.info.resolution ;
+	float fy = (grid_pt.y - m_globalcostmap.info.origin.position.y) / m_globalcostmap.info.resolution ;
 
 	return cv::Point( (int)fx, (int)fy );
 }
@@ -162,6 +163,8 @@ void FrontierDetectorDMS::loadCostMap( const string& costmapfile)
 		}
 	}
 	ifs_map.close();
+
+	printf("costmap info : %d %d %f %f %f %f %f \n", nwidth, nheight, origx, origy, resolution, m_robotpose.x, m_robotpose.y );
 }
 
 void FrontierDetectorDMS::loadGridMap( const string& imgfilename, const string& mapinfofile)
@@ -219,39 +222,46 @@ void FrontierDetectorDMS::loadGridMap( const string& imgfilename, const string& 
 //	cv::waitKey(0);
 }
 
-void FrontierDetectorDMS::loadCostMap( const string& imgfilename, const string& mapinfofile)
+void FrontierDetectorDMS::loadCostMap( const string& mapfilename, const string& mapinfofile)
 {
 	int nheight, nwidth ;
-	uint8_t value ;
+	int8_t value ;
 	float origx = 0;
 	float origy = 0;
 	float resolution ;
 
 	std::ifstream ifs_map(mapinfofile) ;
-	ifs_map >> m_robotpose.x >> m_robotpose.y >> origx >> origy >> nheight >> nwidth >> resolution;
+	ifs_map >> nwidth  >>  nheight >> origx >> origy  >> resolution >> m_robotpose.x >> m_robotpose.y ;
 	m_globalcostmap.info.height = nheight ;
 	m_globalcostmap.info.width  = nwidth ;
 	m_globalcostmap.info.origin.position.x = origx ;
 	m_globalcostmap.info.origin.position.y = origy ;
 	m_globalcostmap.info.resolution = resolution ;
 
-	cv::Mat img = cv::imread(imgfilename,0);
+//	cv::Mat img = cv::imread(imgfilename,0);
+	ifstream ifs(mapfilename) ;
+
 
 	for( int ridx=0; ridx < nheight; ridx++ )
 	{
 		for( int cidx=0; cidx < nwidth; cidx++ )
 		{
-			value = img.data[ ridx * nwidth + cidx ] ;
+			ifs >> value ;
+			m_globalcostmap.data.push_back(value) ;
 
-			if( value == 127)
-				m_globalcostmap.data.push_back(-1);
-			else if(value == 0)
-				m_globalcostmap.data.push_back(0);
-			else
-				m_globalcostmap.data.push_back(100);
+//			ifs >> value ; //img.data[ ridx * nwidth + cidx ] ;
+//
+//			if( value == 127)
+//				m_globalcostmap.data.push_back(-1);
+//			else if(value == 0)
+//				m_globalcostmap.data.push_back(0);
+//			else
+//				m_globalcostmap.data.push_back(100);
 		}
 	}
 	ifs_map.close();
+
+	printf("gmapinfo:(rx ry ox oy nW nH) %f %f %f %f %d %d\n", m_robotpose.x, m_robotpose.y, origx, origy, nwidth, nheight );
 }
 
 
@@ -286,13 +296,13 @@ void FrontierDetectorDMS::loadFrontierPoints(   const string& strfrontierfilenam
 		iss >> fx_w >> fy_w >> nx_g >> ny_g >> dummy ;
 
 		geometry_msgs::PoseStamped fptpose = StampedPosefromSE2( fx_w, fy_w, 0.f );
-		fptpose.header.frame_id = m_baseFrameId ;
+		fptpose.header.frame_id = m_worldFrameId ;
 		frontierpoints.poses.push_back( fptpose ) ;
 	}
 }
 
 
-void FrontierDetectorDMS::planToFrontierPoints( const nav_msgs::Path& msg_frontierpoints  )
+void FrontierDetectorDMS::planToFrontierPoints( const int nframeidx, const nav_msgs::Path& msg_frontierpoints   )
 {
 	std::vector<signed char> cmdata;
 	float cmresolution=m_globalcostmap.info.resolution;
@@ -306,7 +316,7 @@ void FrontierDetectorDMS::planToFrontierPoints( const nav_msgs::Path& msg_fronti
 								cmstartx, cmstarty );
 	//ROS_INFO("mpo_costmap has been reset \n");
 	unsigned char* pmap = mpo_costmap->getCharMap() ;
-	//ROS_INFO("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
+printf("w h datlen : %d %d %d \n", cmwidth, cmheight, cmdata.size() );
 
 	for(uint32_t ridx = 0; ridx < cmheight; ridx++)
 	{
@@ -319,11 +329,13 @@ void FrontierDetectorDMS::planToFrontierPoints( const nav_msgs::Path& msg_fronti
 	}
 
 	geometry_msgs::PoseStamped start = StampedPosefromSE2( m_robotpose.x , m_robotpose.y, 0.f );
+	start.header.frame_id = m_worldFrameId ;
 	float fstartx = static_cast<float>( start.pose.position.x ) ;
 	float fstarty = static_cast<float>( start.pose.position.y ) ;
 	float fmindist = DIST_HIGH ;
 	size_t min_heuristic_idx = 0;
 
+	cv::Point start_gm = world2gridmap( cv::Point2f( fstartx, fstarty ) );
 //////////////////////////////////////////////////////////////////////////////////
 // 2. use the fp corresponds to the min distance as the init fp. epsilon = A*(fp)
 // 	i)  We first sort fpts based on their euc heuristic(), then try makePlan() for each of fpts in turn.
@@ -341,15 +353,16 @@ void FrontierDetectorDMS::planToFrontierPoints( const nav_msgs::Path& msg_fronti
 //	fXbest = static_cast<float>(0);
 //	fYbest = static_cast<float>(0);
 
-	float fendpot = POT_HIGH;
+	float fendpot = 0.f; // POT_HIGH;
 
 ///////////////////////// /////////////////////////////////////////////////////////
 // 3. Do BB based openmp search
 //////////////////////////////////////////////////////////////////////////////////
 
+	printf("tot num frontier points: %d \n", msg_frontierpoints.poses.size());
+
 	//set<> fpoints = m_valid_frontier_set ;
 	vector< uint32_t > gplansizes( msg_frontierpoints.poses.size(), 0 ) ;
-
 
 	GlobalPlanningHandler o_gph( *mpo_costmap, m_worldFrameId, m_baseFrameId );
 	std::vector<geometry_msgs::PoseStamped> plan;
@@ -364,45 +377,56 @@ void FrontierDetectorDMS::planToFrontierPoints( const nav_msgs::Path& msg_fronti
 //	vector<cv::Point2f> cvgoalcands;
 //	for (int idx=0; idx < msg_frontierpoints.poses.size(); idx++ )
 //		cvgoalcands.push_back( cv::Point2f( msg_frontierpoints.poses[idx].pose.position.x, msg_frontierpoints.poses[idx].pose.position.y ) );
-	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal ) shared( fupperbound,  best_idx )
+	#pragma omp parallel firstprivate( o_gph, msg_frontierpoints, plan, tid, start, goal, fendpot ) shared( fupperbound,  best_idx )
 	{
 		#pragma omp for
 		for( fptidx=0; fptidx < msg_frontierpoints.poses.size() ; fptidx++)
 		{
 			tid = omp_get_thread_num() ;
 
-	//ROS_INFO("processing (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
+	//printf("processing %dth point (%f %f) with thread %d/%d : %d", p.x, p.y, omp_get_thread_num(), omp_get_num_threads(), idx );
 			//fendpot = POT_HIGH ;
-			float fendpot;
+			fendpot = 0.f;
 			o_gph.reinitialization( ) ;
 			geometry_msgs::PoseStamped goal = msg_frontierpoints.poses[fptidx]; //StampedPosefromSE2( cvgoalcands[fptidx].x , cvgoalcands[fptidx].y, 0.f );
 			goal.header.frame_id = m_worldFrameId ;
-	//ROS_INFO("goal: %f %f \n", fpoints[fptidx].x, fpoints[fptidx].y );
+	//printf("%dth point: %f %f \n", fptidx, goal.pose.position.x, goal.pose.position.y );
 			bool bplansuccess = o_gph.makePlan(tid, fupperbound, true, start, goal, plan, fendpot);
 
-	//ROS_INFO("[tid %d: [%d] ] processed %d th point (%f %f) to (%f %f) marked %f potential \n ", tid, bplansuccess, fptidx,
-	//										  start.pose.position.x, start.pose.position.y,
-	//										  goal.pose.position.x, goal.pose.position.y, fendpot);
+
+//	printf("[tid %02d: [%d] ] processed %03d th point (%04f %04f) to (%04f %04f) marked \t %f / %f potential \n ", tid, bplansuccess, fptidx,
+//											  start.pose.position.x, start.pose.position.y,
+//											  goal.pose.position.x, goal.pose.position.y, fendpot, fupperbound);
+
+			cv::Point goal_gm = world2gridmap(cv::Point2f(goal.pose.position.x, goal.pose.position.y)) ;
+			printf("[tid %02d: [%d] ] processed %03d th point (%04d %04d) to (%04d %04d) marked \t %f / %f potential \n ", tid, bplansuccess, fptidx,
+													  start_gm.x, start_gm.y,
+													  goal_gm.x, goal_gm.y, fendpot, fupperbound);
+
+
 			//gplansizes[fptidx] = myplan.size();
 			if( fendpot < fupperbound )
 			{
 				omp_set_lock(&m_mplock);
 				fupperbound = fendpot; // set new bound;
 				best_idx = fptidx;
-//				fXbest = goal.pose.position.x ;
-//				fYbest = goal.pose.position.y ;
 				omp_unset_lock(&m_mplock);
 			}
-			fptidx++;
 	///////////////////////////////////////////////////////////////////////////
 		}
 	}
 
-	static int ndebugframeidx = 0;
-	string strmpbbout = (boost::format("/home/hankm/results/autoexploration/mpbb/mpbbout%05d.txt") % ndebugframeidx ).str() ;
+	float fx = (msg_frontierpoints.poses[best_idx].pose.position.x - cmstartx) / cmresolution ;
+	float fy = (msg_frontierpoints.poses[best_idx].pose.position.y - cmstarty) / cmresolution ;
+	int nx_g = static_cast<int>(fx) ;
+	int ny_g = static_cast<int>(fy) ;
+
+	printf("\n best idx : %d / %d  goal: (%d %d)\n", best_idx, m_nbestidx, nx_g , ny_g );
+
+	string strmpbbout = (boost::format("/home/hankm/results/autoexploration/mpbb/mpbbout%05d.txt") % nframeidx ).str() ;
 	std::ofstream ofs_mpbbout( strmpbbout );
-	ofs_mpbbout << msg_frontierpoints.poses[best_idx].pose.position.x << " " << msg_frontierpoints.poses[best_idx].pose.position.y <<
-			 best_idx << m_nbestidx << endl;
+	ofs_mpbbout << msg_frontierpoints.poses[best_idx].pose.position.x << " " << msg_frontierpoints.poses[best_idx].pose.position.y
+				<< " " << best_idx << " " << m_nbestidx << endl;
 
 	ofs_mpbbout.close();
 

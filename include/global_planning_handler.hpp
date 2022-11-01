@@ -18,7 +18,7 @@
 #ifndef INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 #define INCLUDE_GLOBAL_PLANNING_HANDLER_HPP_
 
-#include <ros/ros.h>
+//#include <ros/ros.h>
 #include <nav_fn/navfn.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PoseStamped.h>
